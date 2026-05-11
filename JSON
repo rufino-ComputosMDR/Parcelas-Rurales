@@ -1,0 +1,13 @@
+{
+  "type": "FeatureCollection",
+  "name": "Zonas",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    { "type": "Feature", "properties": { "id": 1, "Hoja": "Hoja 1" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.6408, -34.0701 ], ... ] ] ] } },
+    { "type": "Feature", "properties": { "id": 2, "Hoja": "Hoja 2" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.5702, -34.0828 ], ... ] ] ] } },
+    { "type": "Feature", "properties": { "id": 4, "Hoja": "Hoja 4" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.5129, -34.3080 ], ... ] ] ] } },
+    { "type": "Feature", "properties": { "id": 6, "Hoja": "Hoja 6" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.7069, -34.3863 ], ... ] ] ] } },
+    { "type": "Feature", "properties": { "id": 5, "Hoja": "Hoja 5" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.8842, -34.3865 ], ... ] ] ] } },
+    { "type": "Feature", "properties": { "id": 3, "Hoja": "Hoja 3" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -62.7769, -34.2469 ], ... ] ] ] } }
+  ]
+}

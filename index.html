@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catastro Rural Interactivo</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        #map { height: 100vh; width: 100%; background-color: #f8f9fa; }
+
+        /* Botón Flotante para Volver */
+        #btn-reset {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #2c3e50;
+            color: #2c3e50;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        #btn-reset:hover { background: #2c3e50; color: white; }
+
+        /* Etiquetas de las Zonas (Vista General) */
+        .etiqueta-zona {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #333;
+            padding: 3px 8px;
+            font-weight: bold;
+            color: #333;
+            border-radius: 4px;
+        }
+
+        /* Etiquetas de las Parcelas (TGIRural) */
+        .etiqueta-parcela {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            font-size: 10px;
+            color: #d35400;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        /* Estilo de la Ficha (Popup) */
+        .ficha-contenedor { min-width: 200px; }
+        .ficha-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .ficha-tabla td { padding: 5px; border-bottom: 1px solid #eee; font-size: 12px; }
+        .ficha-tabla td.label { font-weight: bold; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+<button id="btn-reset" onclick="volverAlMapa()">⬅ Volver a Vista de Zonas</button>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Configuración Inicial
+    const map = L.map('map').setView([-34.15, -62.6], 10);
+    let capaZonas, capaParcelas;
+    
+    // Capa Base Satelital (Híbrida para ver caminos)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const colores = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
+
+    // 1. CARGAR ZONAS (INICIO)
+    fetch('zonas.geojson')
+        .then(res => res.json())
+        .then(data => {
+            capaZonas = L.geoJSON(data, {
+                style: (feature) => ({
+                    fillColor: colores[feature.properties.id % colores.length],
+                    weight: 2,
+                    color: 'white',
+                    fillOpacity: 0.5
+                }),
+                onEachFeature: (feature, layer) => {
+                    // Texto: Hoja X
+                    layer.bindTooltip("Hoja " + feature.properties.id, {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'etiqueta-zona'
+                    });
+
+                    // Evento Click para entrar a la zona
+                    layer.on('click', function(e) {
+                        const idHoja = feature.properties.id;
+                        cargarParcelas(idHoja, e.target.getBounds());
+                    });
+                }
+            }).addTo(map);
+            
+            map.fitBounds(capaZonas.getBounds());
+        });
+
+    // 2. FUNCIÓN PARA CARGAR PARCELAS FILTRADAS
+    function cargarParcelas(idHoja, bounds) {
+        if (capaParcelas) map.removeLayer(capaParcelas);
+        
+        fetch('rurales.geojson')
+            .then(res => res.json())
+            .then(data => {
+                capaParcelas = L.geoJSON(data, {
+                    // FILTRO: Solo parcelas que pertenecen a esta Hoja
+                    filter: (feature) => feature.properties.Hoja == idHoja,
+                    
+                    style: {
+                        color: '#d35400',
+                        weight: 1,
+                        fillColor: '#e67e22',
+                        fillOpacity: 0.3
+                    },
+                    onEachFeature: (feature, layer) => {
+                        const p = feature.properties;
+
+                        // Etiqueta permanente TGIRural
+                        if (p.TGIRural) {
+                            layer.bindTooltip(p.TGIRural.toString(), {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'etiqueta-parcela'
+                            });
+                        }
+
+                        // Construcción de la Ficha (Popup)
+                        let tablaHtml = `<div class="ficha-contenedor">
+                            <h3 style="margin:0; color:#2c3e50;">Ficha Parcela</h3>
+                            <table class="ficha-tabla">`;
+                        
+                        for (let key in p) {
+                            tablaHtml += `<tr><td class="label">${key}</td><td>${p[key]}</td></tr>`;
+                        }
+                        tablaHtml += `</table></div>`;
+
+                        layer.bindPopup(tablaHtml);
+                    }
+                }).addTo(map);
+
+                // UI: Zoom y Limpieza
+                map.removeLayer(capaZonas);
+                map.fitBounds(bounds, { padding: [30, 30] });
+                document.getElementById('btn-reset').style.display = 'block';
+            });
+    }
+
+    // 3. FUNCIÓN PARA REGRESAR
+    function volverAlMapa() {
+        if (capaParcelas) map.removeLayer(capaParcelas);
+        capaZonas.addTo(map);
+        map.fitBounds(capaZonas.getBounds());
+        document.getElementById('btn-reset').style.display = 'none';
+    }
+</script>
+</body>
+</html>
