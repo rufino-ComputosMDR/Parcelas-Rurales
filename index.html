@@ -6,14 +6,25 @@
     <title>Catastro Rural Interactivo</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.3">
 </head>
 <body>
 
-    <div id="contenedor-busqueda" class="no-imprimir">
-        <input type="text" id="input-busqueda" list="coincidencias" placeholder="Buscar por Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
-        <datalist id="coincidencias"></datalist>
-        <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
+    <div id="contenedor-logo-mapa" class="no-imprimir">
+        <img src="logo.png" alt="Logo Institucional" id="logo-mapa">
+    </div>
+
+    <div id="panel-busqueda-lateral" class="no-imprimir">
+        <div id="contenedor-busqueda">
+            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Buscar por Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+            <datalist id="coincidencias"></datalist>
+            <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
+        </div>
+
+        <div id="contenedor-coordenadas">
+            <input type="text" id="input-coordenadas" placeholder="Ej: -34.15, -62.6 o 34°9'0&quot;S, 62°36'0&quot;W">
+            <button id="btn-ir-coordenadas" onclick="buscarPorCoordenadas()">📍 Ir</button>
+        </div>
     </div>
 
     <button id="btn-reset" class="no-imprimir" onclick="volverAlMapa()">⬅ Volver a Vista de Zonas</button>
@@ -23,7 +34,10 @@
 
     <div id="pantalla-reporte" style="display: none;">
         <div class="encabezado-reporte no-imprimir">
-            <h2>Ranking - Top 50 Mayores Deudores Rurales</h2>
+            <div class="titulo-web-reporte">
+                <img src="logo.png" alt="Logo" class="logo-reporte-chico">
+                <h2>Ranking - Top 50 Mayores Deudores Rurales</h2>
+            </div>
             <div class="acciones-reporte">
                 <button class="btn-print" onclick="window.print()">🖨 Imprimir Reporte</button>
                 <button class="btn-back" onclick="cerrarReporte()">⬅ Volver al Mapa</button>
@@ -31,6 +45,14 @@
         </div>
         
         <div class="titulo-impresion-visible">
+            <div class="membrete-impresion">
+                <img src="logo.png" alt="Logo Institucional" class="logo-membrete">
+                <div class="datos-municipio">
+                    <h1>CATASTRO RURAL OFICIAL</h1>
+                    <p>Área de Rentas y Gestión Fiscal de la Comuna</p>
+                </div>
+            </div>
+            <hr>
             <h2>REPORTE GENERAL DE MOROSIDAD RURAL</h2>
             <p>Listado de los 50 contribuyentes con mayor cantidad de períodos adeudados.</p>
         </div>
@@ -39,7 +61,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>TGI Rural</th>
+                    <th>TGI Rural (Ver en mapa)</th>
                     <th>Titular</th>
                     <th>Períodos Debidos</th>
                     <th>Total Adeudado</th>
@@ -51,6 +73,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2.3"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // Configuración Inicial del Mapa
 const map = L.map('map').setView([-34.15, -62.6], 10);
-let capaZonas, capaParcelas;
+let capaZonas, capaParcelas, marcadorCoordenada;
 let datosRuralesGlobal = null; 
 
 // Capa Base
@@ -86,7 +86,6 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
             
             for (let key in p) {
                 let valor = p[key];
-                // Validación exacta de tu propiedad de importe
                 if (key === "Total Adeudado sin Judic. Al 16-06-26") {
                     valor = "$ " + valor;
                 }
@@ -142,14 +141,8 @@ function actualizarCoincidencias() {
 function ejecutarBusqueda() {
     let valorBuscado = document.getElementById('input-busqueda').value.trim();
 
-    if (!valorBuscado) {
-        alert("Por favor, ingrese un término para buscar.");
-        return;
-    }
-    if (!datosRuralesGlobal) {
-        alert("Los datos aún se están cargando en segundo plano.");
-        return;
-    }
+    if (!valorBuscado) { alert("Por favor, ingrese un término para buscar."); return; }
+    if (!datosRuralesGlobal) { alert("Los datos se están cargando."); return; }
 
     if (valorBuscado.includes("Partida: ")) {
         valorBuscado = valorBuscado.split("|")[0].replace("Partida: ", "").trim();
@@ -167,55 +160,112 @@ function ejecutarBusqueda() {
     });
 
     if (parcelaEncontrada) {
-        const idHoja = parcelaEncontrada.properties.Hoja;
-        const partida = parcelaEncontrada.properties.PARTIDA;
-        
-        const capaTemporal = L.geoJSON(parcelaEncontrada);
-        const boundsParcela = capaTemporal.getBounds();
-
-        cargarParcelas(idHoja, boundsParcela, partida);
+        hacerFocoEnParcela(parcelaEncontrada);
     } else {
         alert("No se encontró ninguna parcela que coincida.");
     }
 }
 
+function hacerFocoEnParcela(parcela) {
+    const idHoja = parcela.properties.Hoja;
+    const partida = parcela.properties.PARTIDA;
+    const capaTemporal = L.geoJSON(parcela);
+    cargarParcelas(idHoja, capaTemporal.getBounds(), partida);
+}
+
 // 5. FUNCIÓN PARA REGRESAR EN EL MAPA
 function volverAlMapa() {
     if (capaParcelas) map.removeLayer(capaParcelas);
+    if (marcadorCoordenada) map.removeLayer(marcadorCoordenada); // Limpia pin de coordenadas si quedó
     if (!map.hasLayer(capaZonas)) capaZonas.addTo(map);
     map.fitBounds(capaZonas.getBounds());
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('input-busqueda').value = ""; 
+    document.getElementById('input-coordenadas').value = ""; 
 }
 
 
 // ==========================================
-// FUNCIONALIDAD: REPORTE TOP 50 DEUDORES
+// NUEVO MÓDULO: DETECTOR DE GRADOS Y LATITUD
+// ==========================================
+
+function parsearDMSToDecimal(strInput) {
+    // Si ya es un número decimal directo limpio (ej: -34.15)
+    if (!isNaN(parseFloat(strInput)) && !strInput.includes('°') && !strInput.includes("'")) {
+        return parseFloat(strInput);
+    }
+
+    // Filtra y separa números limpiando caracteres raros de grados/minutos/segundos
+    let partes = strInput.split(/[^\d\w\.]+/);
+    let grados = parseFloat(partes[0]) || 0;
+    let minutos = parseFloat(partes[1]) || 0;
+    let segundos = parseFloat(partes[2]) || 0;
+    let orientacion = strInput.toUpperCase();
+
+    let resultadoDecimal = grados + (minutos / 60) + (segundos / 3600);
+
+    // Si es del hemisferio Sur o Oeste (Oeste suele marcarse W o O), multiplicamos por -1
+    if (orientacion.includes('S') || orientacion.includes('W') || orientacion.includes('O')) {
+        resultadoDecimal = resultadoDecimal * -1;
+    }
+
+    return resultadoDecimal;
+}
+
+function buscarPorCoordenadas() {
+    const rawValue = document.getElementById('input-coordenadas').value.trim();
+    if (!rawValue) { alert("Ingrese coordenadas."); return; }
+
+    // Dividimos la entrada en dos por la coma (Latitud, Longitud)
+    let partesCoordenadas = rawValue.split(',');
+    if (partesCoordenadas.length !== 2) {
+        alert("Formato inválido. Separe la Latitud y Longitud con una coma (,).");
+        return;
+    }
+
+    let lat = parsearDMSToDecimal(partesCoordenadas[0].trim());
+    let lng = parsearDMSToDecimal(partesCoordenadas[1].trim());
+
+    if (isNaN(lat) || isNaN(lng)) {
+        alert("No se pudieron interpretar los grados o números. Revise el formato.");
+        return;
+    }
+
+    // Si había un marcador viejo puesto, lo sacamos
+    if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
+
+    // Creamos un pin rojo para indicar la coordenada exacta buscada
+    marcadorCoordenada = L.marker([lat, lng]).addTo(map);
+    marcadorCoordenada.bindPopup(`<b>Punto Geográfico Buscado:</b><br>Lat: ${lat.toFixed(5)}<br>Lng: ${lng.toFixed(5)}`).openPopup();
+
+    // Centramos la cámara del mapa en esa ubicación con un buen zoom
+    map.setView([lat, lng], 14);
+    
+    // Dejamos activo el botón de reset por si quieren limpiar el pin y volver
+    document.getElementById('btn-reset').style.display = 'block';
+}
+
+
+// ==========================================
+// MÓDULO: RANKING TOP 50 DEUDORES RURALES
 // ==========================================
 
 function mostrarTopDeudores() {
-    if (!datosRuralesGlobal) {
-        alert("Los datos aún se están cargando. Aguarde un instante.");
-        return;
-    }
+    if (!datosRuralesGlobal) { alert("Aguarde un instante, cargando datos..."); return; }
 
     const tablaCuerpo = document.getElementById('cuerpo-tabla-reporte');
     tablaCuerpo.innerHTML = ""; 
 
-    // Extraemos las propiedades de todas las parcelas rurales
     let listaParcelas = datosRuralesGlobal.features.map(f => f.properties);
 
-    // Ordenamos de Mayor a Menor de forma exacta usando tu campo "Periodos Deuda"
     listaParcelas.sort((a, b) => {
         let perA = parseInt(a["Periodos Deuda"]) || 0;
         let perB = parseInt(b["Periodos Deuda"]) || 0;
         return perB - perA; 
     });
 
-    // Tomamos las primeras 50 parcelas
     const top50 = listaParcelas.slice(0, 50);
 
-    // Renderizamos las filas con tus campos exactos
     top50.forEach((p, index) => {
         let tgi = p["TGIRural"] || "---";
         let nombre = p["Tit. Nombre"] || "SIN TITULAR";
@@ -225,7 +275,7 @@ function mostrarTopDeudores() {
         const fila = document.createElement('tr');
         fila.innerHTML = `
             <td><strong>${index + 1}</strong></td>
-            <td>${tgi}</td>
+            <td><a href="#" class="link-tgi-mapa" onclick="irAParcelaDesdeReporte('${tgi}')">🎯 ${tgi}</a></td>
             <td>${nombre}</td>
             <td style="text-align: center; color: #c0392b; font-weight: bold;">${periodos}</td>
             <td style="font-weight: bold;">$ ${deudaValor}</td>
@@ -233,20 +283,32 @@ function mostrarTopDeudores() {
         tablaCuerpo.appendChild(fila);
     });
 
-    // Cambiamos de pantalla: Ocultamos mapa, mostramos tabla formal
     document.getElementById('map').style.display = 'none';
-    document.getElementById('contenedor-busqueda').style.display = 'none';
+    document.getElementById('panel-busqueda-lateral').style.display = 'none';
+    document.getElementById('contenedor-logo-mapa').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('btn-reporte').style.display = 'none';
     
     document.getElementById('pantalla-reporte').style.display = 'block';
 }
 
+function irAParcelaDesdeReporte(tgiBuscado) {
+    const parcela = datosRuralesGlobal.features.find(f => f.properties.TGIRural && f.properties.TGIRural.toString() === tgiBuscado.toString());
+
+    if (parcela) {
+        cerrarReporte();
+        hacerFocoEnParcela(parcela);
+    } else {
+        alert("No se encontró la forma del lote para este TGI en el mapa.");
+    }
+}
+
 function cerrarReporte() {
     document.getElementById('pantalla-reporte').style.display = 'none';
     
     document.getElementById('map').style.display = 'block';
-    document.getElementById('contenedor-busqueda').style.display = 'flex';
+    document.getElementById('panel-busqueda-lateral').style.display = 'block';
+    document.getElementById('contenedor-logo-mapa').style.display = 'block';
     document.getElementById('btn-reporte').style.display = 'block';
     
     if (capaParcelas && map.hasLayer(capaParcelas)) {
