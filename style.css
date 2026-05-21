@@ -10,7 +10,7 @@ body {
     background-color: #f8f9fa; 
 }
 
-/* Botón Flotante */
+/* Botón Flotante (Escritorio) */
 #btn-reset {
     position: absolute;
     top: 20px;
@@ -58,3 +58,43 @@ body {
 .ficha-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .ficha-tabla td { padding: 5px; border-bottom: 1px solid #eee; font-size: 12px; }
 .ficha-tabla td.label { font-weight: bold; color: #7f8c8d; }
+
+
+/* ==========================================
+   ADAPTACIÓN PARA CELULARES (Pantallas chicas)
+   ========================================== */
+@media (max-width: 768px) {
+    /* Mueve el botón abajo al centro, tipo app móvil, para mejor agarre táctil */
+    #btn-reset {
+        top: auto;
+        bottom: 25px;
+        right: 50%;
+        transform: translateX(50%);
+        width: 85%;
+        text-align: center;
+        padding: 14px;
+        font-size: 14px;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+    }
+
+    .etiqueta-zona {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    /* Ajustes para que el popup no se rompa ni desborde en pantallas angostas */
+    .leaflet-popup-content-wrapper {
+        max-width: 280px;
+    }
+
+    .ficha-contenedor {
+        min-width: 240px;
+        max-height: 200px; /* Genera scroll interno si hay demasiados campos */
+        overflow-y: auto; 
+    }
+
+    .ficha-tabla td {
+        padding: 8px 5px; /* Más espacio entre filas para tocar sin errar */
+        font-size: 13px;  /* Texto ligeramente más grande para lectura en mano */
+    }
+}

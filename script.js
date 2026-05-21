@@ -67,11 +67,10 @@ function cargarParcelas(idHoja, bounds) {
                         <h3 style="margin:0; color:#2c3e50;">Ficha Parcela</h3>
                         <table class="ficha-tabla">`;
                     
-                    // Bucle para armar la tabla con el arreglo del símbolo "$"
+                    // Bucle para armar la tabla agregando el símbolo "$" en las deudas
                     for (let key in p) {
                         let valor = p[key];
                         
-                        // Si la propiedad empieza con el texto indicado, le agrega el signo pesos delante
                         if (key.startsWith("Total Adeudado sin Judic.")) {
                             valor = "$ " + valor;
                         }
@@ -80,7 +79,11 @@ function cargarParcelas(idHoja, bounds) {
                     }
                     
                     tablaHtml += `</table></div>`;
-                    layer.bindPopup(tablaHtml);
+                    
+                    // Se agrega autoPanPadding para que el popup no se corte en pantallas chicas
+                    layer.bindPopup(tablaHtml, {
+                        autoPanPadding: L.point(10, 50)
+                    });
                 }
             }).addTo(map);
 
