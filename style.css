@@ -10,91 +10,137 @@ body {
     background-color: #f8f9fa; 
 }
 
-/* Botón Flotante (Escritorio) */
-#btn-reset {
+/* Buscador Flotante Unificado */
+#contenedor-busqueda {
     position: absolute;
     top: 20px;
-    right: 20px;
+    left: 60px;
+    z-index: 1000;
+    background: white;
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 5px;
+}
+
+#contenedor-busqueda input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    font-size: 13px;
+    width: 280px;
+}
+
+#contenedor-busqueda button {
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Botones Flotantes del Mapa */
+#btn-reset, #btn-reporte {
+    position: absolute;
     z-index: 1000;
     padding: 12px 20px;
     background: white;
-    border: 2px solid #2c3e50;
     color: #2c3e50;
     font-weight: bold;
     cursor: pointer;
     border-radius: 8px;
-    display: none;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     transition: all 0.3s;
 }
+#btn-reset { top: 20px; right: 20px; border: 2px solid #2c3e50; display: none; }
+#btn-reset:hover { background: #2c3e50; color: white; }
 
-#btn-reset:hover { 
-    background: #2c3e50; 
-    color: white; 
-}
+#btn-reporte { top: 85px; right: 20px; border: 2px solid #27ae60; color: #27ae60; }
+#btn-reporte:hover { background: #27ae60; color: white; }
 
-/* Etiquetas */
-.etiqueta-zona {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #333;
-    padding: 3px 8px;
-    font-weight: bold;
-    color: #333;
-    border-radius: 4px;
-}
-
-.etiqueta-parcela {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    font-size: 10px;
-    color: #d35400;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px white;
-}
-
-/* Ficha Popup */
+/* Ficha Popup y Etiquetas */
+.etiqueta-zona { background: rgba(255, 255, 255, 0.9); border: 1px solid #333; padding: 3px 8px; font-weight: bold; color: #333; border-radius: 4px; }
+.etiqueta-parcela { background: transparent; border: none; box-shadow: none; font-size: 10px; color: #d35400; font-weight: bold; text-shadow: 1px 1px 2px white; }
 .ficha-contenedor { min-width: 200px; }
 .ficha-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .ficha-tabla td { padding: 5px; border-bottom: 1px solid #eee; font-size: 12px; }
 .ficha-tabla td.label { font-weight: bold; color: #7f8c8d; }
 
+/* Animación de titileo */
+.parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
+@keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
 
-/* ==========================================
-   ADAPTACIÓN PARA CELULARES (Pantallas chicas)
-   ========================================== */
+/* Estilos del reporte */
+#pantalla-reporte {
+    padding: 30px;
+    background: #fafafa;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.encabezado-reporte {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #2c3e50;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.encabezado-reporte h2 { margin: 0; color: #2c3e50; }
+.acciones-reporte { display: flex; gap: 10px; }
+
+.acciones-reporte button {
+    padding: 10px 18px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+}
+.btn-print { background: #2980b9; color: white; }
+.btn-print:hover { background: #1f6391; }
+.btn-back { background: #7f8c8d; color: white; }
+.btn-back:hover { background: #616c6d; }
+
+.tabla-reporte {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.tabla-reporte th, .tabla-reporte td { padding: 12px 15px; text-align: left; font-size: 14px; }
+.tabla-reporte th { background: #2c3e50; color: white; font-weight: 600; }
+.tabla-reporte tr:nth-child(even) { background: #f2f4f4; }
+.tabla-reporte tr { border-bottom: 1px solid #e5e7e9; }
+
+.titulo-impresion-visible { display: none; }
+
+/* Impresión */
+@media print {
+    .no-imprimir, #contenedor-busqueda, #btn-reset, #btn-reporte, .encabezado-reporte { display: none !important; }
+    #pantalla-reporte { padding: 0; background: white; }
+    .titulo-impresion-visible { display: block !important; text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+    .tabla-reporte { box-shadow: none; border: 1px solid #000; }
+    .tabla-reporte th { background: #444 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tabla-reporte tr:nth-child(even) { background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    /* Mueve el botón abajo al centro, tipo app móvil, para mejor agarre táctil */
-    #btn-reset {
-        top: auto;
-        bottom: 25px;
-        right: 50%;
-        transform: translateX(50%);
-        width: 85%;
-        text-align: center;
-        padding: 14px;
-        font-size: 14px;
-        box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
-    }
+    #contenedor-busqueda { top: 10px; left: 10px; right: 10px; width: auto; }
+    #contenedor-busqueda input { flex-grow: 1; width: 100px; }
 
-    .etiqueta-zona {
-        font-size: 11px;
-        padding: 4px 8px;
-    }
-
-    /* Ajustes para que el popup no se rompa ni desborde en pantallas angostas */
-    .leaflet-popup-content-wrapper {
-        max-width: 280px;
-    }
-
-    .ficha-contenedor {
-        min-width: 240px;
-        max-height: 200px; /* Genera scroll interno si hay demasiados campos */
-        overflow-y: auto; 
-    }
-
-    .ficha-tabla td {
-        padding: 8px 5px; /* Más espacio entre filas para tocar sin errar */
-        font-size: 13px;  /* Texto ligeramente más grande para lectura en mano */
-    }
+    #btn-reset { bottom: 25px; right: 50%; transform: translateX(50%); width: 85%; text-align: center; top: auto; }
+    #btn-reporte { top: auto; bottom: 25px; right: 20px; padding: 12px; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; text-align: center; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    
+    .encabezado-reporte { flex-direction: column; gap: 15px; align-items: flex-start; }
+    .tabla-reporte th, .tabla-reporte td { padding: 8px; font-size: 11px; }
+    #pantalla-reporte { padding: 10px; }
 }
