@@ -66,9 +66,19 @@ function cargarParcelas(idHoja, bounds) {
                     let tablaHtml = `<div class="ficha-contenedor">
                         <h3 style="margin:0; color:#2c3e50;">Ficha Parcela</h3>
                         <table class="ficha-tabla">`;
+                    
+                    // Bucle para armar la tabla con el arreglo del símbolo "$"
                     for (let key in p) {
-                        tablaHtml += `<tr><td class="label">${key}</td><td>${p[key]}</td></tr>`;
+                        let valor = p[key];
+                        
+                        // Si la propiedad empieza con el texto indicado, le agrega el signo pesos delante
+                        if (key.startsWith("Total Adeudado sin Judic.")) {
+                            valor = "$ " + valor;
+                        }
+                        
+                        tablaHtml += `<tr><td class="label">${key}</td><td>${valor}</td></tr>`;
                     }
+                    
                     tablaHtml += `</table></div>`;
                     layer.bindPopup(tablaHtml);
                 }
