@@ -66,7 +66,7 @@ body {
     text-align: center;
 }
 
-/* BOTONES FLOTANTES DERECHOS */
+/* BOTONES FLOTANTES DERECHOS (ESCRITORIO) */
 .botones-controles-derechos {
     position: absolute;
     top: 20px;
@@ -135,6 +135,83 @@ body {
 
 .titulo-impresion-visible { display: none; }
 
+/* ==========================================
+   NUEVA MEDIAPUERY: OPTIMIZACIÓN CELULARES (VERTICAL)
+   ========================================== */
+@media screen and (max-width: 600px) {
+    /* El logo se achica y va arriba a la izquierda */
+    #contenedor-logo-mapa {
+        top: 10px;
+        left: 10px;
+    }
+    #logo-mapa {
+        height: 32px;
+    }
+
+    /* Buscadores colapsan arriba de forma ordenada */
+    #panel-busqueda-lateral {
+        top: 55px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+    }
+    #contenedor-busqueda, #contenedor-coordenadas {
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: space-between;
+    }
+    #contenedor-busqueda input { flex-grow: 1; width: 60%; }
+    #contenedor-coordenadas input { flex-grow: 1; width: 60%; }
+
+    /* Los botones de control bajan y se vuelven una barra fija inferior táctil */
+    .botones-controles-derechos {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        flex-direction: row;
+        gap: 0;
+        background: white;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+        width: 100%;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 0 (env(safe-area-inset-bottom, 0px)); /* Soporte notch */
+    }
+
+    .botones-controles-derechos button {
+        padding: 10px 8px;
+        font-size: 11px;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        flex: 1;
+        text-align: center;
+        border-right: 1px solid #eee;
+    }
+    
+    .botones-controles-derechos button:last-child {
+        border-right: none;
+    }
+
+    /* Estilos específicos para los botones inferiores en modo barra */
+    #btn-referencias { color: #00b4d8; }
+    #btn-referencias.activo { background: #e0f7fa; font-weight: bold; }
+    #btn-reporte { color: #27ae60; }
+    #btn-reset { color: #c0392b; }
+
+    /* Forzar que los controles nativos de Leaflet (zoom) no tapen la barra inferior */
+    .leaflet-bottom { bottom: 65px !important; }
+    .leaflet-top { top: 145px !important; }
+
+    /* Ajustes de la pantalla de tabla de reportes para que no se rompa de ancho */
+    #pantalla-reporte { padding: 10px; }
+    .tabla-reporte th, .tabla-reporte td { padding: 8px 6px; font-size: 11px; }
+    .encabezado-reporte h2 { font-size: 14px; }
+}
+
+/* MEDIAPUERY PARA IMPRESIÓN (SE MANTIENE IGUAL) */
 @media print {
     .no-imprimir, .botones-controles-derechos, .encabezado-reporte { display: none !important; }
     #pantalla-reporte { padding: 0; background: white; }
