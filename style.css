@@ -113,7 +113,7 @@ body {
 .parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
 @keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
 
-/* REPORTE GENERAL DE DEUDAS */
+/* REPORTE GENERAL DE DEUDAS (ESCRITORIO) */
 #pantalla-reporte { padding: 30px; background: #fafafa; min-height: 100vh; box-sizing: border-box; }
 .encabezado-reporte { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
 .titulo-web-reporte { display: flex; align-items: center; gap: 15px; }
@@ -136,10 +136,9 @@ body {
 .titulo-impresion-visible { display: none; }
 
 /* ==========================================
-   NUEVA MEDIAPUERY: OPTIMIZACIÓN CELULARES (VERTICAL)
+   NUEVA MEDIAQUERY: OPTIMIZACIÓN TOTAL CELULARES
    ========================================== */
 @media screen and (max-width: 600px) {
-    /* El logo se achica y va arriba a la izquierda */
     #contenedor-logo-mapa {
         top: 10px;
         left: 10px;
@@ -148,23 +147,17 @@ body {
         height: 32px;
     }
 
-    /* Buscadores colapsan arriba de forma ordenada */
     #panel-busqueda-lateral {
         top: 55px;
         left: 10px;
         right: 10px;
         width: auto;
     }
-    #contenedor-busqueda, #contenedor-coordenadas {
-        width: 100%;
-        box-sizing: border-box;
-        justify-content: space-between;
-    }
-    #contenedor-busqueda input { flex-grow: 1; width: 60%; }
-    #contenedor-coordenadas input { flex-grow: 1; width: 60%; }
+    #contenedor-busqueda input, #contenedor-coordenadas input { flex-grow: 1; width: 60%; }
 
-    /* Los botones de control bajan y se vuelven una barra fija inferior táctil */
-    .botones-controles-derechos {
+    /* Barra inferior flotante fija SOLO cuando se ve el mapa */
+    body:not(:has(#pantalla-reporte[style*="display: block"])) .botones-controles-derechos {
+        position: fixed;
         top: auto;
         bottom: 0;
         left: 0;
@@ -176,11 +169,18 @@ body {
         width: 100%;
         justify-content: space-around;
         align-items: center;
-        padding: 8px 0 (env(safe-area-inset-bottom, 0px)); /* Soporte notch */
+        padding: 8px 0 env(safe-area-inset-bottom, 0px);
+        z-index: 1100;
+        display: flex !important;
+    }
+
+    /* Si el reporte está abierto, ocultamos por completo la barra inferior táctil */
+    body:has(#pantalla-reporte[style*="display: block"]) .botones-controles-derechos {
+        display: none !important;
     }
 
     .botones-controles-derechos button {
-        padding: 10px 8px;
+        padding: 12px 8px;
         font-size: 11px;
         border: none;
         border-radius: 0;
@@ -190,28 +190,67 @@ body {
         text-align: center;
         border-right: 1px solid #eee;
     }
-    
-    .botones-controles-derechos button:last-child {
-        border-right: none;
-    }
+    .botones-controles-derechos button:last-child { border-right: none; }
 
-    /* Estilos específicos para los botones inferiores en modo barra */
     #btn-referencias { color: #00b4d8; }
     #btn-referencias.activo { background: #e0f7fa; font-weight: bold; }
     #btn-reporte { color: #27ae60; }
     #btn-reset { color: #c0392b; }
 
-    /* Forzar que los controles nativos de Leaflet (zoom) no tapen la barra inferior */
     .leaflet-bottom { bottom: 65px !important; }
     .leaflet-top { top: 145px !important; }
 
-    /* Ajustes de la pantalla de tabla de reportes para que no se rompa de ancho */
-    #pantalla-reporte { padding: 10px; }
-    .tabla-reporte th, .tabla-reporte td { padding: 8px 6px; font-size: 11px; }
-    .encabezado-reporte h2 { font-size: 14px; }
+    /* REAJUSTE ESTRUCTURAL DEL REPORTE EN EL CELULAR */
+    #pantalla-reporte { 
+        padding: 15px 10px 40px 10px; 
+        background: #fafafa;
+        overflow-x: hidden;
+    }
+    
+    .encabezado-reporte {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding-bottom: 12px;
+    }
+
+    .titulo-web-reporte h2 {
+        font-size: 15px;
+    }
+
+    .acciones-reporte {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .acciones-reporte button {
+        flex: 1;
+        padding: 12px 8px;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    /* Contenedor con scroll para que la tabla no se rompa de ancho */
+    #pantalla-reporte {
+        display: block;
+    }
+    
+    /* Forzamos comportamiento responsivo en la tabla catastral */
+    .tabla-reporte {
+        display: block;
+        width: 100%;
+        overflow-x: auto; /* Permite deslizar de costado si el nombre es largo */
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tabla-reporte th, .tabla-reporte td { 
+        padding: 10px 8px; 
+        font-size: 12px; 
+    }
 }
 
-/* MEDIAPUERY PARA IMPRESIÓN (SE MANTIENE IGUAL) */
+/* MEDIAPUERY PARA IMPRESIÓN */
 @media print {
     .no-imprimir, .botones-controles-derechos, .encabezado-reporte { display: none !important; }
     #pantalla-reporte { padding: 0; background: white; }
@@ -220,7 +259,7 @@ body {
     .logo-membrete { height: 70px; width: auto; }
     .datos-municipio h1 { margin: 0; font-size: 22px; color: #000; letter-spacing: 1px; }
     .datos-municipio p { margin: 2px 0 0 0; font-size: 14px; color: #555; }
-    .tabla-reporte { box-shadow: none; border: 1px solid #000; }
+    .tabla-reporte { box-shadow: none; border: 1px solid #000; display: table !important; }
     .tabla-reporte th { background: #444 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .tabla-reporte tr:nth-child(even) { background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
