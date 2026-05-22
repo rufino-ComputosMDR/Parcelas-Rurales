@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catastro Rural y Productivo - Comuna</title>
+    <title>Catastro Rural - Módulo de Auditoría</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=3.6">
+    <link rel="stylesheet" href="style.css?v=4.0">
 </head>
 <body>
 
@@ -30,7 +30,6 @@
     <div class="botones-controles-derechos no-imprimir">
         <button id="btn-reset" onclick="volverAlMapa()">⬅ Volver a Vista General</button>
         <button id="btn-referencias" onclick="toggleReferencias()">📍 Mostrar Referencias</button>
-        <button id="btn-cosecha" onclick="mostrarReporteCosecha()">🌾 Índice Cosecha 2026</button>
         <button id="btn-reporte" onclick="mostrarTopDeudores()">📊 Top 50 Mayores Deudas</button>
     </div>
 
@@ -40,7 +39,7 @@
         <div class="encabezado-reporte no-imprimir">
             <div class="titulo-web-reporte">
                 <img src="logo.png" alt="Logo" class="logo-reporte-chico">
-                <h2 id="titulo-dinamico-reporte">Reporte Oficial</h2>
+                <h2>Ranking - Top 50 Mayores Deudas Rurales</h2>
             </div>
             <div class="acciones-reporte">
                 <button class="btn-print" onclick="window.print()">🖨 Imprimir Reporte</button>
@@ -53,23 +52,30 @@
                 <img src="logo.png" alt="Logo Institucional" class="logo-membrete">
                 <div class="datos-municipio">
                     <h1>SISTEMA DE GESTIÓN RURAL</h1>
-                    <p>Área de Rentas y Producción Agrícola de la Comuna</p>
+                    <p>Área de Rentas e Inspección Tributaria</p>
                 </div>
             </div>
             <hr>
-            <h2 id="subtitulo-dinamico-impresion">REPORTE GENERAL</h2>
-            <p id="descripcion-dinamica-impresion">Información extraída del módulo de catastro.</p>
+            <h2>REPORTE GENERAL DE MOROSIDAD DE MAYOR CUANTÍA</h2>
+            <p>Listado de los 50 contribuyentes con los montos adeudados más altos del distrito rural (Padrones Únicos).</p>
         </div>
 
         <table class="tabla-reporte">
-            <thead id="cabecera-tabla-reporte">
-                </thead>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>TGI Rural (Ir al mapa)</th>
+                    <th>Titular</th>
+                    <th>Períodos Debidos</th>
+                    <th>Total Adeudado</th>
+                </tr>
+            </thead>
             <tbody id="cuerpo-tabla-reporte">
                 </tbody>
         </table>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js?v=3.6"></script>
+    <script src="script.js?v=4.0"></script>
 </body>
 </html>

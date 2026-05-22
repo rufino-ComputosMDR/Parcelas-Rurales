@@ -25,7 +25,7 @@ body {
     filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
 }
 
-/* PANEL LATERAL DE BUSCADORES COMPACTO */
+/* PANEL LATERAL DE BUSCADORES */
 #panel-busqueda-lateral {
     position: absolute;
     top: 75px;
@@ -52,7 +52,7 @@ body {
 #contenedor-coordenadas input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
 #contenedor-coordenadas button { background: #2980b9; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-/* ETIQUETAS DE TEXTO DE REFERENCIAS (9px OPTIMIZADAS) */
+/* ETIQUETAS COMPACTAS DE REFERENCIAS (9px) */
 .texto-referencia-mapa {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid #03045e;
@@ -66,7 +66,7 @@ body {
     text-align: center;
 }
 
-/* PANEL CONTROLES DERECHOS CONTENEDOR */
+/* BOTONES FLOTANTES DERECHOS */
 .botones-controles-derechos {
     position: absolute;
     top: 20px;
@@ -96,9 +96,6 @@ body {
 #btn-referencias { border-color: #00b4d8; color: #00b4d8; }
 #btn-referencias.activo { background: #00b4d8; color: white; }
 
-#btn-cosecha { border-color: #e67e22; color: #e67e22; }
-#btn-cosecha:hover { background: #e67e22; color: white; }
-
 #btn-reporte { border-color: #27ae60; color: #27ae60; }
 #btn-reporte:hover { background: #27ae60; color: white; }
 
@@ -116,7 +113,7 @@ body {
 .parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
 @keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
 
-/* REPORTE GENERAL */
+/* REPORTE GENERAL DE DEUDAS */
 #pantalla-reporte { padding: 30px; background: #fafafa; min-height: 100vh; box-sizing: border-box; }
 .encabezado-reporte { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
 .titulo-web-reporte { display: flex; align-items: center; gap: 15px; }
