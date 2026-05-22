@@ -25,7 +25,7 @@ body {
     filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
 }
 
-/* PANEL LATERAL DE BUSCADORES */
+/* PANEL LATERAL DE BUSCADORES COMPACTO */
 #panel-busqueda-lateral {
     position: absolute;
     top: 75px;
@@ -33,13 +33,12 @@ body {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Un poco más juntos para compactar */
+    gap: 8px;
 }
 
-/* Estilo Base de las Barras de Búsqueda */
 #contenedor-busqueda, #contenedor-coordenadas {
     background: white;
-    padding: 4px 6px; /* Menos relleno vertical */
+    padding: 4px 6px;
     border-radius: 6px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     display: flex;
@@ -47,62 +46,39 @@ body {
     align-items: center;
 }
 
-/* Buscador Catastral Unificado - ¡Más Chico! */
-#contenedor-busqueda input { 
-    padding: 7px 10px; 
-    border: 1px solid #ccc; 
-    border-radius: 4px; 
-    outline: none; 
-    font-size: 13px; 
-    width: 190px; /* Reducido de 280px a 190px */
-}
-#contenedor-busqueda button { 
-    background: #2c3e50; 
-    color: white; 
-    border: none; 
-    padding: 7px 12px; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-weight: bold; 
+#contenedor-busqueda input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 13px; width: 190px; }
+#contenedor-busqueda button { background: #2c3e50; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+#contenedor-coordenadas input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
+#contenedor-coordenadas button { background: #2980b9; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+/* ETIQUETAS DE TEXTO DE REFERENCIAS (9px OPTIMIZADAS) */
+.texto-referencia-mapa {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #03045e;
+    color: #03045e;
+    padding: 2px 5px;
+    font-size: 9px;
+    font-weight: 600;
+    border-radius: 3px;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    text-align: center;
 }
 
-/* Buscador por Grados/Latitud - ¡Más Chico! */
-#contenedor-coordenadas input { 
-    padding: 7px 10px; 
-    border: 1px solid #ccc; 
-    border-radius: 4px; 
-    outline: none; 
-    font-size: 12px; 
-    width: 160px; /* Reducido de 280px a 160px */
-    background: #fafafa; 
-}
-#contenedor-coordenadas button { 
-    background: #2980b9; 
-    color: white; 
-    border: none; 
-    padding: 7px 12px; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-weight: bold; 
-}
-
-/* Enlace TGI dentro de la tabla del reporte */
-.link-tgi-mapa {
-    color: #2980b9;
-    text-decoration: none;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-.link-tgi-mapa:hover {
-    background: #e8f4f8;
-    text-decoration: underline;
-}
-
-/* Botones Flotantes del Mapa */
-#btn-reset, #btn-reporte {
+/* PANEL CONTROLES DERECHOS CONTENEDOR */
+.botones-controles-derechos {
     position: absolute;
+    top: 20px;
+    right: 20px;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.botones-controles-derechos button {
     padding: 12px 20px;
     background: white;
     color: #2c3e50;
@@ -111,16 +87,27 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     transition: all 0.3s;
+    border: 2px solid #2c3e50;
 }
-#btn-reset { top: 20px; right: 20px; border: 2px solid #2c3e50; display: none; }
+
+#btn-reset { display: none; }
 #btn-reset:hover { background: #2c3e50; color: white; }
 
-#btn-reporte { top: 85px; right: 20px; border: 2px solid #27ae60; color: #27ae60; }
+#btn-referencias { border-color: #00b4d8; color: #00b4d8; }
+#btn-referencias.activo { background: #00b4d8; color: white; }
+
+#btn-cosecha { border-color: #e67e22; color: #e67e22; }
+#btn-cosecha:hover { background: #e67e22; color: white; }
+
+#btn-reporte { border-color: #27ae60; color: #27ae60; }
 #btn-reporte:hover { background: #27ae60; color: white; }
 
-/* Ficha Popup y Etiquetas */
+.link-tgi-mapa { color: #2980b9; text-decoration: none; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+.link-tgi-mapa:hover { background: #e8f4f8; text-decoration: underline; }
+
 .etiqueta-zona { background: rgba(255, 255, 255, 0.9); border: 1px solid #333; padding: 3px 8px; font-weight: bold; color: #333; border-radius: 4px; }
 .etiqueta-parcela { background: transparent; border: none; box-shadow: none; font-size: 10px; color: #d35400; font-weight: bold; text-shadow: 1px 1px 2px white; }
+
 .ficha-contenedor { min-width: 200px; }
 .ficha-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .ficha-tabla td { padding: 5px; border-bottom: 1px solid #eee; font-size: 12px; }
@@ -129,7 +116,7 @@ body {
 .parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
 @keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
 
-/* Estilos Visuales del Reporte */
+/* REPORTE GENERAL */
 #pantalla-reporte { padding: 30px; background: #fafafa; min-height: 100vh; box-sizing: border-box; }
 .encabezado-reporte { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
 .titulo-web-reporte { display: flex; align-items: center; gap: 15px; }
@@ -151,37 +138,15 @@ body {
 
 .titulo-impresion-visible { display: none; }
 
-/* REGLAS DE IMPRESIÓN */
 @media print {
-    .no-imprimir, #panel-busqueda-lateral, #btn-reset, #btn-reporte, .encabezado-reporte, #contenedor-logo-mapa { display: none !important; }
+    .no-imprimir, .botones-controles-derechos, .encabezado-reporte { display: none !important; }
     #pantalla-reporte { padding: 0; background: white; }
     .titulo-impresion-visible { display: block !important; margin-bottom: 20px; }
     .membrete-impresion { display: flex; align-items: center; gap: 20px; margin-bottom: 10px; }
     .logo-membrete { height: 70px; width: auto; }
     .datos-municipio h1 { margin: 0; font-size: 22px; color: #000; letter-spacing: 1px; }
     .datos-municipio p { margin: 2px 0 0 0; font-size: 14px; color: #555; }
-    
-    .titulo-impresion-visible h2 { text-align: center; margin-top: 20px; font-size: 18px; text-decoration: underline; }
-    .titulo-impresion-visible p { text-align: center; font-size: 12px; }
-    
     .tabla-reporte { box-shadow: none; border: 1px solid #000; }
     .tabla-reporte th { background: #444 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .tabla-reporte tr:nth-child(even) { background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .link-tgi-mapa { color: #000 !important; text-decoration: none !important; }
-}
-
-/* ADAPTACIÓN PARA CELULARES (Mantiene el comportamiento elástico para pantallas chicas) */
-@media (max-width: 768px) {
-    #contenedor-logo-mapa { left: 50%; transform: translateX(-50%); top: 10px; }
-    #logo-mapa { height: 32px; }
-
-    #panel-busqueda-lateral { top: 50px; left: 10px; right: 10px; }
-    #contenedor-busqueda input, #contenedor-coordenadas input { flex-grow: 1; width: 100px; padding: 8px; }
-
-    #btn-reset { bottom: 25px; right: 50%; transform: translateX(50%); width: 85%; text-align: center; top: auto; }
-    #btn-reporte { top: auto; bottom: 25px; right: 20px; padding: 12px; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-    
-    .encabezado-reporte { flex-direction: column; gap: 15px; align-items: flex-start; }
-    .tabla-reporte th, .tabla-reporte td { padding: 8px; font-size: 11px; }
-    #pantalla-reporte { padding: 10px; }
 }

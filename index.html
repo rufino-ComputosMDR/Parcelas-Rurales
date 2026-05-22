@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catastro Rural Interactivo</title>
+    <title>Catastro Rural y Productivo - Comuna</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=2.3">
+    <link rel="stylesheet" href="style.css?v=3.6">
 </head>
 <body>
 
@@ -16,19 +16,23 @@
 
     <div id="panel-busqueda-lateral" class="no-imprimir">
         <div id="contenedor-busqueda">
-            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Buscar por Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
             <datalist id="coincidencias"></datalist>
             <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
         </div>
 
         <div id="contenedor-coordenadas">
-            <input type="text" id="input-coordenadas" placeholder="Ej: -34.15, -62.6 o 34°9'0&quot;S, 62°36'0&quot;W">
+            <input type="text" id="input-coordenadas" placeholder="Ej: -34.15, -62.6...">
             <button id="btn-ir-coordenadas" onclick="buscarPorCoordenadas()">📍 Ir</button>
         </div>
     </div>
 
-    <button id="btn-reset" class="no-imprimir" onclick="volverAlMapa()">⬅ Volver a Vista de Zonas</button>
-    <button id="btn-reporte" class="no-imprimir" onclick="mostrarTopDeudores()">📊 Top 50 Deudores</button>
+    <div class="botones-controles-derechos no-imprimir">
+        <button id="btn-reset" onclick="volverAlMapa()">⬅ Volver a Vista General</button>
+        <button id="btn-referencias" onclick="toggleReferencias()">📍 Mostrar Referencias</button>
+        <button id="btn-cosecha" onclick="mostrarReporteCosecha()">🌾 Índice Cosecha 2026</button>
+        <button id="btn-reporte" onclick="mostrarTopDeudores()">📊 Top 50 Mayores Deudas</button>
+    </div>
 
     <div id="map" class="no-imprimir"></div>
 
@@ -36,7 +40,7 @@
         <div class="encabezado-reporte no-imprimir">
             <div class="titulo-web-reporte">
                 <img src="logo.png" alt="Logo" class="logo-reporte-chico">
-                <h2>Ranking - Top 50 Mayores Deudores Rurales</h2>
+                <h2 id="titulo-dinamico-reporte">Reporte Oficial</h2>
             </div>
             <div class="acciones-reporte">
                 <button class="btn-print" onclick="window.print()">🖨 Imprimir Reporte</button>
@@ -48,31 +52,24 @@
             <div class="membrete-impresion">
                 <img src="logo.png" alt="Logo Institucional" class="logo-membrete">
                 <div class="datos-municipio">
-                    <h1>CATASTRO RURAL OFICIAL</h1>
-                    <p>Área de Rentas y Gestión Fiscal de la Comuna</p>
+                    <h1>SISTEMA DE GESTIÓN RURAL</h1>
+                    <p>Área de Rentas y Producción Agrícola de la Comuna</p>
                 </div>
             </div>
             <hr>
-            <h2>REPORTE GENERAL DE MOROSIDAD RURAL</h2>
-            <p>Listado de los 50 contribuyentes con mayor cantidad de períodos adeudados.</p>
+            <h2 id="subtitulo-dinamico-impresion">REPORTE GENERAL</h2>
+            <p id="descripcion-dinamica-impresion">Información extraída del módulo de catastro.</p>
         </div>
 
         <table class="tabla-reporte">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>TGI Rural (Ver en mapa)</th>
-                    <th>Titular</th>
-                    <th>Períodos Debidos</th>
-                    <th>Total Adeudado</th>
-                </tr>
-            </thead>
+            <thead id="cabecera-tabla-reporte">
+                </thead>
             <tbody id="cuerpo-tabla-reporte">
                 </tbody>
         </table>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js?v=2.3"></script>
+    <script src="script.js?v=3.6"></script>
 </body>
 </html>
