@@ -10,7 +10,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const colores = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
-// FUNCIÓN AUXILIAR: Convierte texto formateado a número flotante real (Evita saltos de coma)
+// FUNCIÓN AUXILIAR: Convierte texto formateado a número flotante real
 function limpiarMonto(texto) {
     if (texto === null || texto === undefined) return 0;
     if (typeof texto === 'number') return texto;
@@ -134,9 +134,20 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
             let tablaHtml = `<div class="ficha-contenedor"><h3 style="margin:0; color:#2c3e50;">Ficha Parcela</h3><table class="ficha-tabla">`;
             for (let key in p) {
                 let valor = p[key];
-                if (key.toLowerCase().includes("total adeudado") || key.toLowerCase().includes("deuda") || key.toLowerCase().includes("monto")) {
+                let keyLower = key.toLowerCase();
+                
+                // VALIDACIONES DE TIPO DE DATO EXPLICITAS
+                if (keyLower.includes("fecha")) {
+                    // Si el campo es una fecha, se saltea el formateo monetario y se muestra directo
+                    valor = valor || "---";
+                } else if (keyLower.includes("periodos")) {
+                    // Fuerza a entero para evitar decimales extraños
+                    valor = parseInt(valor, 10);
+                    if (isNaN(valor)) valor = 0;
+                } else if (keyLower.includes("total adeudado") || keyLower.includes("deuda") || keyLower.includes("monto")) {
                     valor = formatearMoneda(valor);
                 }
+                
                 tablaHtml += `<tr><td class="label">${key}</td><td>${valor}</td></tr>`;
             }
             tablaHtml += `</table></div>`;
@@ -209,10 +220,11 @@ function mostrarTopDeudores() {
     tableBody.innerHTML = ""; 
     
     let listaParcelas = datosRuralesGlobal.features.map(f => f.properties);
+    const columnaDeuda = "Total Adeudado sin Judic.";
     
     listaParcelas.sort((a, b) => {
-        let valorA = limpiarMonto(a["Total Adeudado sin Judic. Al 16-06-26"]);
-        let valorB = limpiarMonto(b["Total Adeudado sin Judic. Al 16-06-26"]);
+        let valorA = limpiarMonto(a[columnaDeuda]);
+        let valorB = limpiarMonto(b[columnaDeuda]);
         return valorB - valorA;
     });
 
@@ -232,8 +244,13 @@ function mostrarTopDeudores() {
     listaFiltradaSinRepetir.forEach((p, index) => {
         let tgi = p["TGIRural"] || "---";
         let nombre = p["Tit. Nombre"] || "SIN TITULAR";
-        let periodos = p["Periodos Deuda"] || 0;
-        let deudaFormateada = formatearMoneda(p["Total Adeudado sin Judic. Al 16-06-26"]);
+        
+        // Búsqueda del campo de períodos de manera flexible e inserción como entero estricto
+        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
+        let periodos = parseInt(p[keyPeriodos], 10);
+        if (isNaN(periodos)) periodos = 0;
+
+        let deudaFormateada = formatearMoneda(p[columnaDeuda]);
 
         const fila = document.createElement('tr');
         fila.innerHTML = `
