@@ -196,42 +196,62 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
     document.getElementById('btn-reset').style.display = 'block';
 }
 
-// 4. AUTOCOMPLETADO
+// ==========================================================================
+// 4. AUTOCOMPLETADO OPTIMIZADO (Prioriza Visibilidad del Nombre del Titular)
+// ==========================================================================
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
     datalist.innerHTML = ""; 
+    
     if (valor.length < 2 || !datosRuralesGlobal) return;
     let contador = 0;
+    
     for (let f of datosRuralesGlobal.features) {
         const p = f.properties;
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString() : "";
         const tgi = p["TGIRural"] ? p["TGIRural"].toString() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString() : "";
+        
+        // Verifica si coincide con alguno de los tres campos
         if (partida.toLowerCase().includes(valor) || tgi.toLowerCase().includes(valor) || titular.toLowerCase().includes(valor)) {
             const option = document.createElement('option');
-            option.value = `Partida: ${partida} | TGI: ${tgi} | ${titular}`;
+            
+            // Ponemos el Titular como valor principal para que sea lo único que quede escrito en el cuadro
+            option.value = titular ? titular : `Partida: ${partida}`;
+            
+            // Usamos el atributo 'label' para mostrar los datos catastrales como accesorio visual en el despliegue
+            option.label = `(TGI: ${tgi} | Partida: ${partida})`;
+            
             datalist.appendChild(option);
-            contador++; if (contador >= 8) break; 
+            contador++; 
+            if (contador >= 8) break; 
         }
     }
 }
 
-// 5. MOTOR DE BÚSQUEDA CATASTRAL
+// ==========================================================================
+// 5. MOTOR DE BÚSQUEDA CATASTRAL (Soporta nombres limpios o códigos)
+// ==========================================================================
 function ejecutarBusqueda() {
-    let valorBuscado = document.getElementById('input-busqueda').value.trim();
-    if (!valorBuscado) { alert("Ingrese un término."); return; }
-    if (valorBuscado.includes("Partida: ")) valorBuscado = valorBuscado.split("|")[0].replace("Partida: ", "").trim();
-    else valorBuscado = valorBuscado.toLowerCase();
+    let valorBuscado = document.getElementById('input-busqueda').value.trim().toLowerCase();
+    if (!valorBuscado) { alert("Ingrese un término para buscar."); return; }
 
+    // Busca coincidencia exacta o parcial en los registros globales
     const parcelaEncontrada = datosRuralesGlobal.features.find(f => {
         const p = f.properties;
-        return (p["PARTIDA"] && p["PARTIDA"].toString().toLowerCase() === valorBuscado) || 
-               (p["TGIRural"] && p["TGIRural"].toString().toLowerCase().includes(valorBuscado)) || 
-               (p["Tit. Nombre"] && p["Tit. Nombre"].toString().toLowerCase().includes(valorBuscado));
+        const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
+        const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
+        const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
+        
+        return partida === valorBuscado || tgi === valorBuscado || titular === valorBuscado || titular.includes(valorBuscado);
     });
-    if (parcelaEncontrada) hacerFocoEnParcela(parcelaEncontrada);
-    else alert("No se encontró ninguna parcela.");
+
+    if (parcelaEncontrada) {
+        hacerFocoEnParcela(parcelaEncontrada);
+    } else { 
+        alert("No se encontró ninguna parcela que coincida exactamente con ese Titular, TGI o Partida."); 
+    }
 }
 
 function hacerFocoEnParcela(parcela) {
