@@ -131,27 +131,55 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
             if (p.TGIRural) {
                 layer.bindTooltip(p.TGIRural.toString(), { permanent: true, direction: 'center', className: 'etiqueta-parcela' });
             }
-            let tablaHtml = `<div class="ficha-contenedor"><h3 style="margin:0; color:#2c3e50;">Ficha Parcela</h3><table class="ficha-tabla">`;
+            
+            // Armado dinámico estructurado del rectángulo con formato mejorado
+            let fichaHtml = `
+                <div class="ficha-auditoria-container">
+                    <div class="ficha-auditoria-header">
+                        <span>HOJA ${p.Hoja || idHoja}</span>
+                        <h3>FICHA DE PARCELA</h3>
+                    </div>
+                    <div class="ficha-auditoria-body">
+                        <table class="ficha-tabla-dinamica">
+            `;
+
             for (let key in p) {
                 let valor = p[key];
                 let keyLower = key.toLowerCase();
+                let claseEstilo = "";
                 
-                // VALIDACIONES DE TIPO DE DATO EXPLICITAS
+                // Mantiene tus validaciones de tipo exactas sobre cualquier información que venga
                 if (keyLower.includes("fecha")) {
-                    // Si el campo es una fecha, se saltea el formateo monetario y se muestra directo
                     valor = valor || "---";
+                    claseEstilo = "td-fecha";
                 } else if (keyLower.includes("periodos")) {
-                    // Fuerza a entero para evitar decimales extraños
                     valor = parseInt(valor, 10);
                     if (isNaN(valor)) valor = 0;
+                    claseEstilo = "td-periodos";
                 } else if (keyLower.includes("total adeudado") || keyLower.includes("deuda") || keyLower.includes("monto")) {
                     valor = formatearMoneda(valor);
+                    claseEstilo = "td-monto";
                 }
                 
-                tablaHtml += `<tr><td class="label">${key}</td><td>${valor}</td></tr>`;
+                fichaHtml += `
+                    <tr>
+                        <td class="label-col">${key}</td>
+                        <td class="value-col ${claseEstilo}">${valor}</td>
+                    </tr>
+                `;
             }
-            tablaHtml += `</table></div>`;
-            layer.bindPopup(tablaHtml, { autoPanPadding: L.point(10, 50) });
+
+            fichaHtml += `
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            layer.bindPopup(fichaHtml, { 
+                autoPanPadding: L.point(15, 60),
+                maxWidth: 340,
+                minWidth: 290
+            });
 
             if (idParcelaAIluminar && p.PARTIDA === idParcelaAIluminar) {
                 setTimeout(() => {
@@ -213,7 +241,7 @@ function hacerFocoEnParcela(parcela) {
     cargarParcelas(idHoja, capaTemporal.getBounds(), partida);
 }
 
-// 6. RANKING DE DEUDORES (PADRONES UNICOS Y MONEDA ARGENTINA AJUSTADA)
+// 6. RANKING DE DEUDORES (PADRONES UNICOS, MONEDA ARGENTINA AJUSTADA Y > 5 PERIODOS)
 function mostrarTopDeudores() {
     if (!datosRuralesGlobal) { alert("Cargando datos..."); return; }
     const tableBody = document.getElementById('cuerpo-tabla-reporte');
@@ -233,6 +261,14 @@ function mostrarTopDeudores() {
 
     for (let p of listaParcelas) {
         let tgi = p["TGIRural"] ? p["TGIRural"].toString().trim() : null;
+        
+        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
+        let periodos = parseInt(p[keyPeriodos], 10);
+        if (isNaN(periodos)) periodos = 0;
+
+        // FILTRO EXPLICITO: Saltamos padrones si la deuda acumulada es de 5 o menos períodos
+        if (periodos <= 5) continue;
+
         if (tgi) {
             if (tgiProcesados.has(tgi)) continue; 
             tgiProcesados.add(tgi);
@@ -245,7 +281,6 @@ function mostrarTopDeudores() {
         let tgi = p["TGIRural"] || "---";
         let nombre = p["Tit. Nombre"] || "SIN TITULAR";
         
-        // Búsqueda del campo de períodos de manera flexible e inserción como entero estricto
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
         let periodos = parseInt(p[keyPeriodos], 10);
         if (isNaN(periodos)) periodos = 0;
@@ -272,8 +307,12 @@ function mostrarTopDeudores() {
 
 function irAParcelaDesdeReporte(tgiBuscado) {
     const parcela = datosRuralesGlobal.features.find(f => f.properties.TGIRural && f.properties.TGIRural.toString() === tgiBuscado.toString());
-    if (parcela) { cerrarReporte(); hacerFocoEnParcela(parcela); }
-    else { alert("No se localizó en mapa."); }
+    if (parcela) { 
+        cerrarReporte(); 
+        hacerFocoEnParcela(parcela); 
+    } else { 
+        alert("No se localizó en mapa."); 
+    }
 }
 
 function cerrarReporte() {
