@@ -10,7 +10,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const colores = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
-// FUNCIÓN AUXILIAR: Convierte texto formateado a número flotante real
 function limpiarMonto(texto) {
     if (texto === null || texto === undefined) return 0;
     if (typeof texto === 'number') return texto;
@@ -32,13 +31,12 @@ function limpiarMonto(texto) {
     return isNaN(resultadoFlotante) ? 0 : resultadoFlotante;
 }
 
-// FUNCIÓN AUXILIAR: Formatea números al estándar regional argentino
 function formatearMoneda(valor) {
     let numero = limpiarMonto(valor);
     return "$ " + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// 1. CARGA DE ARCHIVOS GEOJSON AL INICIAR
+// 1. CARGA DE ARCHIVOS GEOJSON
 fetch('zonas.geojson')
     .then(res => res.json())
     .then(data => {
@@ -56,12 +54,11 @@ fetch('zonas.geojson')
                     className: 'etiqueta-zona'
                 });
                 layer.on('click', function(e) {
-                    cargarParcelas(feature.properties.id, e.target.getBounds());
+                    comenzarAuditoriaZona(feature.properties.id, e.target.getBounds());
                 });
             }
         }).addTo(map);
         map.fitBounds(capaZonas.getBounds());
-        
         prepararCapaReferencias();
     })
     .catch(err => console.error("Error zonas:", err));
@@ -71,8 +68,11 @@ fetch('rurales.geojson')
     .then(data => { datosRuralesGlobal = data; })
     .catch(err => console.error("Error rurales:", err));
 
+function comenzarAuditoriaZona(idHoja, bounds) {
+    cargarParcelas(idHoja, bounds);
+}
 
-// 2. CONTROL DE REFERENCIAS FLOTANTE
+// 2. REFERENCIAS
 function prepararCapaReferencias() {
     fetch('referencias.geojson')
         .then(res => res.json())
@@ -82,13 +82,11 @@ function prepararCapaReferencias() {
                 pointToLayer: function (feature, latlng) {
                     let p = feature.properties;
                     let nombreVisible = p.Name || "Punto sin nombre";
-
                     let textoIcono = L.divIcon({
                         className: 'texto-referencia-mapa',
                         html: `<div>📍 ${nombreVisible}</div>`,
                         iconSize: null 
                     });
-                    
                     return L.marker(latlng, { icon: textoIcono });
                 }
             }); 
@@ -98,7 +96,6 @@ function prepararCapaReferencias() {
 
 function toggleReferencias() {
     if (!capaReferencias) return;
-    
     if (referenciasVisibles) {
         map.removeLayer(capaReferencias);
         document.getElementById('btn-referencias').innerText = "📍 Mostrar Referencias";
@@ -111,7 +108,7 @@ function toggleReferencias() {
     referenciasVisibles = !referenciasVisibles;
 }
 
-// 3. CAPA INTERACTIVA DE PARCELAS CATASTRALES
+// 3. CAPA PARCELAS CON FICHA RECTANGULAR DINÁMICA
 function cargarParcelas(idHoja, bounds, idParcelaAIluminar = null) {
     if (capaParcelas) map.removeLayer(capaParcelas);
     renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar);
@@ -132,7 +129,6 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
                 layer.bindTooltip(p.TGIRural.toString(), { permanent: true, direction: 'center', className: 'etiqueta-parcela' });
             }
             
-            // Armado dinámico estructurado del rectángulo con formato mejorado
             let fichaHtml = `
                 <div class="ficha-auditoria-container">
                     <div class="ficha-auditoria-header">
@@ -148,7 +144,6 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
                 let keyLower = key.toLowerCase();
                 let claseEstilo = "";
                 
-                // Mantiene tus validaciones de tipo exactas sobre cualquier información que venga
                 if (keyLower.includes("fecha")) {
                     valor = valor || "---";
                     claseEstilo = "td-fecha";
@@ -169,11 +164,7 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
                 `;
             }
 
-            fichaHtml += `
-                        </table>
-                    </div>
-                </div>
-            `;
+            fichaHtml += `</table></div></div>`;
 
             layer.bindPopup(fichaHtml, { 
                 autoPanPadding: L.point(15, 60),
@@ -191,14 +182,11 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
     }).addTo(map);
 
     if (map.hasLayer(capaZonas)) map.removeLayer(capaZonas);
-    
     map.fitBounds(bounds, { padding: [30, 30] });
     document.getElementById('btn-reset').style.display = 'block';
 }
 
-// ==========================================================================
-// 4. AUTOCOMPLETADO OPTIMIZADO (Prioriza Visibilidad del Nombre del Titular)
-// ==========================================================================
+// 4. AUTOCOMPLETADO OPTIMIZADO
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
@@ -213,16 +201,10 @@ function actualizarCoincidencias() {
         const tgi = p["TGIRural"] ? p["TGIRural"].toString() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString() : "";
         
-        // Verifica si coincide con alguno de los tres campos
         if (partida.toLowerCase().includes(valor) || tgi.toLowerCase().includes(valor) || titular.toLowerCase().includes(valor)) {
             const option = document.createElement('option');
-            
-            // Ponemos el Titular como valor principal para que sea lo único que quede escrito en el cuadro
             option.value = titular ? titular : `Partida: ${partida}`;
-            
-            // Usamos el atributo 'label' para mostrar los datos catastrales como accesorio visual en el despliegue
             option.label = `(TGI: ${tgi} | Partida: ${partida})`;
-            
             datalist.appendChild(option);
             contador++; 
             if (contador >= 8) break; 
@@ -230,14 +212,11 @@ function actualizarCoincidencias() {
     }
 }
 
-// ==========================================================================
-// 5. MOTOR DE BÚSQUEDA CATASTRAL (Soporta nombres limpios o códigos)
-// ==========================================================================
+// 5. MOTOR DE BÚSQUEDA CATASTRAL
 function ejecutarBusqueda() {
     let valorBuscado = document.getElementById('input-busqueda').value.trim().toLowerCase();
     if (!valorBuscado) { alert("Ingrese un término para buscar."); return; }
 
-    // Busca coincidencia exacta o parcial en los registros globales
     const parcelaEncontrada = datosRuralesGlobal.features.find(f => {
         const p = f.properties;
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
@@ -250,7 +229,7 @@ function ejecutarBusqueda() {
     if (parcelaEncontrada) {
         hacerFocoEnParcela(parcelaEncontrada);
     } else { 
-        alert("No se encontró ninguna parcela que coincida exactamente con ese Titular, TGI o Partida."); 
+        alert("No se encontró ningún registro catastral coincidente."); 
     }
 }
 
@@ -258,10 +237,11 @@ function hacerFocoEnParcela(parcela) {
     const idHoja = parcela.properties.Hoja;
     const partida = parcela.properties.PARTIDA;
     const capaTemporal = L.geoJSON(parcela);
-    cargarParcelas(idHoja, capaTemporal.getBounds(), partida);
+    comenzarAuditoriaZona(idHoja, capaTemporal.getBounds());
+    setTimeout(() => { cargarParcelas(idHoja, capaTemporal.getBounds(), partida); }, 200);
 }
 
-// 6. RANKING DE DEUDORES (PADRONES UNICOS, MONEDA ARGENTINA AJUSTADA Y > 5 PERIODOS)
+// 6. RANKING DE DEUDORES CON TGI BLINDADO
 function mostrarTopDeudores() {
     if (!datosRuralesGlobal) { alert("Cargando datos..."); return; }
     const tableBody = document.getElementById('cuerpo-tabla-reporte');
@@ -270,24 +250,18 @@ function mostrarTopDeudores() {
     let listaParcelas = datosRuralesGlobal.features.map(f => f.properties);
     const columnaDeuda = "Total Adeudado sin Judic.";
     
-    listaParcelas.sort((a, b) => {
-        let valorA = limpiarMonto(a[columnaDeuda]);
-        let valorB = limpiarMonto(b[columnaDeuda]);
-        return valorB - valorA;
-    });
+    listaParcelas.sort((a, b) => limpiarMonto(b[columnaDeuda]) - limpiarMonto(a[columnaDeuda]));
 
     let tgiProcesados = new Set();
     let listaFiltradaSinRepetir = [];
 
     for (let p of listaParcelas) {
         let tgi = p["TGIRural"] ? p["TGIRural"].toString().trim() : null;
-        
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
         let periodos = parseInt(p[keyPeriodos], 10);
         if (isNaN(periodos)) periodos = 0;
 
-        // FILTRO EXPLICITO: Saltamos padrones si la deuda acumulada es de 5 o menos períodos
-        if (periodos <= 5) continue;
+        if (periodos <= 5) continue; 
 
         if (tgi) {
             if (tgiProcesados.has(tgi)) continue; 
@@ -300,7 +274,6 @@ function mostrarTopDeudores() {
     listaFiltradaSinRepetir.forEach((p, index) => {
         let tgi = p["TGIRural"] || "---";
         let nombre = p["Tit. Nombre"] || "SIN TITULAR";
-        
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
         let periodos = parseInt(p[keyPeriodos], 10);
         if (isNaN(periodos)) periodos = 0;
@@ -326,15 +299,28 @@ function mostrarTopDeudores() {
 }
 
 function irAParcelaDesdeReporte(tgiBuscado) {
-    const parcela = datosRuralesGlobal.features.find(f => f.properties.TGIRural && f.properties.TGIRural.toString() === tgiBuscado.toString());
+    if (!datosRuralesGlobal) return;
+    let tgiBuscadoLimpio = tgiBuscado.toString().trim().toUpperCase();
+
+    const parcela = datosRuralesGlobal.features.find(f => {
+        if (!f.properties.TGIRural) return false;
+        let tgiGeoJson = f.properties.TGIRural.toString().trim().toUpperCase();
+        if (tgiGeoJson === tgiBuscadoLimpio) return true;
+        
+        let tgiBuscadoSinCeros = tgiBuscadoLimpio.replace(/^0+/, '');
+        let tgiGeoJsonSinCeros = tgiGeoJson.replace(/^0+/, '');
+        return tgiBuscadoSinCeros === tgiGeoJsonSinCeros;
+    });
+
     if (parcela) { 
         cerrarReporte(); 
         hacerFocoEnParcela(parcela); 
     } else { 
-        alert("No se localizó en mapa."); 
+        alert(`No se localizó la parcela con TGI "${tgiBuscado}" en el mapa.`); 
     }
 }
 
+// 7. CONTROLES GENERALES Y COORDENADAS
 function cerrarReporte() {
     document.getElementById('pantalla-reporte').style.display = 'none';
     document.getElementById('map').style.display = 'block';
@@ -349,10 +335,11 @@ function volverAlMapa() {
     if (capaParcelas) map.removeLayer(capaParcelas);
     if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
     if (!map.hasLayer(capaZonas)) capaZonas.addTo(map);
-    map.fitBounds(capaZonas.getBounds());
+    
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('input-busqueda').value = ""; 
     document.getElementById('input-coordenadas').value = "";
+    map.fitBounds(capaZonas.getBounds());
 }
 
 function parsearDMSToDecimal(strInput) {
@@ -367,7 +354,6 @@ function parsearDMSToDecimal(strInput) {
     return res;
 }
 
-// 7. BUSCADOR DE COORDENADAS (Soporta Decimales y Grados/Minutos/Segundos)
 function buscarPorCoordenadas() {
     const rawValue = document.getElementById('input-coordenadas').value.trim();
     if (!rawValue) return;

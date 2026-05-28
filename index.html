@@ -6,7 +6,7 @@
     <title>Catastro Rural - Módulo de Auditoría</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <link rel="stylesheet" href="style.css?v=8.0">
 </head>
 <body>
 
@@ -16,7 +16,7 @@
 
     <div id="panel-busqueda-lateral" class="no-imprimir">
         <div id="contenedor-busqueda">
-            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Buscar por Titular, TGI o Partida..." oninput="actualizarCoincidencias()">
             <datalist id="coincidencias"></datalist>
             <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
         </div>
@@ -76,6 +76,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js?v=4.0"></script>
+    <script src="script.js?v=8.0"></script>
 </body>
 </html>

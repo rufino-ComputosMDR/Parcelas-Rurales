@@ -105,10 +105,60 @@ body {
 .etiqueta-zona { background: rgba(255, 255, 255, 0.9); border: 1px solid #333; padding: 3px 8px; font-weight: bold; color: #333; border-radius: 4px; }
 .etiqueta-parcela { background: transparent; border: none; box-shadow: none; font-size: 10px; color: #d35400; font-weight: bold; text-shadow: 1px 1px 2px white; }
 
-.ficha-contenedor { min-width: 200px; }
-.ficha-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.ficha-tabla td { padding: 5px; border-bottom: 1px solid #eee; font-size: 12px; }
-.ficha-tabla td.label { font-weight: bold; color: #7f8c8d; }
+/* DISEÑO RECTANGULAR DE POPUPS (TABLA DINÁMICA CON SCROLL) */
+.ficha-auditoria-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+    margin: -4px;
+}
+.ficha-auditoria-header {
+    background-color: #2c3e50;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 4px 4px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.ficha-auditoria-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.ficha-auditoria-header span {
+    font-size: 11px;
+    background-color: #16a085;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+.ficha-auditoria-body {
+    padding: 8px 12px;
+    background: #fdfefe;
+    border: 1px solid #dcdde1;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+.ficha-tabla-dinamica {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0;
+}
+.ficha-tabla-dinamica tr { border-bottom: 1px solid #f2f3f4; }
+.ficha-tabla-dinamica tr:last-child { border-bottom: none; }
+.ficha-tabla-dinamica td { padding: 6px 4px; font-size: 12px; vertical-align: middle; }
+
+.label-col { color: #7f8c8d; font-weight: 600; text-transform: capitalize; width: 45%; }
+.value-col { color: #2c3e50; font-weight: 500; text-align: right; }
+.td-monto { color: #c0392b !important; font-weight: bold !important; }
+.td-periodos { color: #2c3e50 !important; font-weight: bold !important; }
+.td-fecha { color: #7f8c8d !important; font-style: italic; }
+
+.leaflet-popup-content-wrapper { padding: 0 !important; overflow: hidden; border-radius: 6px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important; }
+.leaflet-popup-content { margin: 0 !important; width: 320px !important; }
 
 .parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
 @keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
@@ -136,26 +186,15 @@ body {
 .titulo-impresion-visible { display: none; }
 
 /* ==========================================
-   NUEVA MEDIAQUERY: OPTIMIZACIÓN TOTAL CELULARES
+   MEDIAQUERY: OPTIMIZACIÓN TOTAL CELULARES
    ========================================== */
 @media screen and (max-width: 600px) {
-    #contenedor-logo-mapa {
-        top: 10px;
-        left: 10px;
-    }
-    #logo-mapa {
-        height: 32px;
-    }
+    #contenedor-logo-mapa { top: 10px; left: 10px; }
+    #logo-mapa { height: 32px; }
 
-    #panel-busqueda-lateral {
-        top: 55px;
-        left: 10px;
-        right: 10px;
-        width: auto;
-    }
+    #panel-busqueda-lateral { top: 55px; left: 10px; right: 10px; width: auto; }
     #contenedor-busqueda input, #contenedor-coordenadas input { flex-grow: 1; width: 60%; }
 
-    /* Barra inferior flotante fija SOLO cuando se ve el mapa */
     body:not(:has(#pantalla-reporte[style*="display: block"])) .botones-controles-derechos {
         position: fixed;
         top: auto;
@@ -174,10 +213,7 @@ body {
         display: flex !important;
     }
 
-    /* Si el reporte está abierto, ocultamos por completo la barra inferior táctil */
-    body:has(#pantalla-reporte[style*="display: block"]) .botones-controles-derechos {
-        display: none !important;
-    }
+    body:has(#pantalla-reporte[style*="display: block"]) .botones-controles-derechos { display: none !important; }
 
     .botones-controles-derechos button {
         padding: 12px 8px;
@@ -198,59 +234,19 @@ body {
     #btn-reset { color: #c0392b; }
 
     .leaflet-bottom { bottom: 65px !important; }
-    .leaflet-top { top: 145px !important; }
+    .leaflet-top { top: 140px !important; } 
 
-    /* REAJUSTE ESTRUCTURAL DEL REPORTE EN EL CELULAR */
-    #pantalla-reporte { 
-        padding: 15px 10px 40px 10px; 
-        background: #fafafa;
-        overflow-x: hidden;
-    }
-    
-    .encabezado-reporte {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        padding-bottom: 12px;
-    }
+    #pantalla-reporte { padding: 15px 10px 40px 10px; background: #fafafa; overflow-x: hidden; display: block; }
+    .encabezado-reporte { flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 12px; }
+    .titulo-web-reporte h2 { font-size: 15px; }
+    .acciones-reporte { width: 100%; justify-content: space-between; }
+    .acciones-reporte button { flex: 1; padding: 12px 8px; font-size: 12px; text-align: center; }
 
-    .titulo-web-reporte h2 {
-        font-size: 15px;
-    }
-
-    .acciones-reporte {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .acciones-reporte button {
-        flex: 1;
-        padding: 12px 8px;
-        font-size: 12px;
-        text-align: center;
-    }
-
-    /* Contenedor con scroll para que la tabla no se rompa de ancho */
-    #pantalla-reporte {
-        display: block;
-    }
-    
-    /* Forzamos comportamiento responsivo en la tabla catastral */
-    .tabla-reporte {
-        display: block;
-        width: 100%;
-        overflow-x: auto; /* Permite deslizar de costado si el nombre es largo */
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tabla-reporte th, .tabla-reporte td { 
-        padding: 10px 8px; 
-        font-size: 12px; 
-    }
+    .tabla-reporte { display: block; width: 100%; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .tabla-reporte th, .tabla-reporte td { padding: 10px 8px; font-size: 12px; }
 }
 
-/* MEDIAPUERY PARA IMPRESIÓN */
+/* MEDIAQUERY PARA IMPRESIÓN */
 @media print {
     .no-imprimir, .botones-controles-derechos, .encabezado-reporte { display: none !important; }
     #pantalla-reporte { padding: 0; background: white; }
@@ -260,6 +256,4 @@ body {
     .datos-municipio h1 { margin: 0; font-size: 22px; color: #000; letter-spacing: 1px; }
     .datos-municipio p { margin: 2px 0 0 0; font-size: 14px; color: #555; }
     .tabla-reporte { box-shadow: none; border: 1px solid #000; display: table !important; }
-    .tabla-reporte th { background: #444 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .tabla-reporte tr:nth-child(even) { background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
+    .tabla-reporte th
