@@ -34,6 +34,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow: visible !important; /* Permite que el datalist sobresalga del panel en PC */
 }
 
 #contenedor-busqueda, #contenedor-coordenadas {
@@ -44,13 +45,31 @@ body {
     display: flex;
     gap: 5px;
     align-items: center;
+    overflow: visible !important; /* Evita el recorte del menú desplegable */
+    position: relative;
 }
 
-#contenedor-busqueda input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 13px; width: 190px; }
+#input-busqueda { 
+    padding: 7px 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    outline: none; 
+    font-size: 13px; 
+    width: 190px; 
+    position: relative;
+    z-index: 1005; /* Se posiciona por encima de las capas de Leaflet para activar el foco */
+}
 #contenedor-busqueda button { background: #2c3e50; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-#contenedor-coordenadas input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
+#input-coordenadas { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
 #contenedor-coordenadas button { background: #2980b9; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+/* Forzar que el menú desplegable nativo no sufra recortes en entorno absoluto */
+datalist {
+    position: absolute;
+    max-height: 250px;
+    overflow-y: auto;
+}
 
 /* ETIQUETAS COMPACTAS DE REFERENCIAS (9px) */
 .texto-referencia-mapa {
@@ -256,4 +275,6 @@ body {
     .datos-municipio h1 { margin: 0; font-size: 22px; color: #000; letter-spacing: 1px; }
     .datos-municipio p { margin: 2px 0 0 0; font-size: 14px; color: #555; }
     .tabla-reporte { box-shadow: none; border: 1px solid #000; display: table !important; }
-    .tabla-reporte th
+    .tabla-reporte th { background: #444 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tabla-reporte tr:nth-child(even) { background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
