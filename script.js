@@ -4,6 +4,8 @@ let capaSegmentosMedidos = L.featureGroup();
 let datosRuralesGlobal = null; 
 let datosReferenciasGlobal = null; 
 let referenciasVisibles = false;
+let graficoVisible = false;
+let topDeudoresVisible = false;
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
@@ -66,7 +68,6 @@ fetch('rurales.geojson')
     .catch(err => console.error("Error rurales:", err));
 
 
-// APAGA EL PLANO GENERAL Y NORMALIZA EL ID A ENTERO PURO
 function comenzarAuditoriaZona(idHoja, bounds) {
     if (map.hasLayer(capaZonas)) {
         map.removeLayer(capaZonas); 
@@ -111,7 +112,6 @@ function toggleReferencias() {
     referenciasVisibles = !referenciasVisibles;
 }
 
-// OBTENER RUMBO DE LA RECTA
 function obtenerRumbo(pt1, pt2) {
     let dLng = (pt2.lng - pt1.lng) * Math.cos(Math.PI / 180 * pt1.lat);
     let dLat = pt2.lat - pt1.lat;
@@ -119,12 +119,9 @@ function obtenerRumbo(pt1, pt2) {
     return (angle + 360) % 360;
 }
 
-// SIMPLIFICACIÓN GEOMÉTRICA POR RUMBOS CONTINUOS (MEDICIÓN SEGÚN FORMA REAL)
 function medirLadosDeParcela(feature) {
     capaSegmentosMedidos.clearLayers(); 
-
     if (!feature.geometry || (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon')) return;
-
     const poligonos = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
 
     poligonos.forEach(anilloExterior => {
@@ -133,7 +130,6 @@ function medirLadosDeParcela(feature) {
 
         let verticesSimplificados = [];
         let puntosOriginales = coordenadas.map(c => L.latLng(c[1], c[0]));
-
         let pActual = puntosOriginales[0];
         verticesSimplificados.push(pActual);
 
@@ -162,134 +158,84 @@ function medirLadosDeParcela(feature) {
             let distanciaLadoCompleto = esquina1.distanceTo(esquina2);
             if (distanciaLadoCompleto < 3) continue;
 
-            let lineaLado = L.polyline([esquina1, esquina2], {
-                color: '#2980b9',
-                weight: 4,
-                opacity: 0.85
-            });
-
+            let lineaLado = L.polyline([esquina1, esquina2], { color: '#2980b9', weight: 4, opacity: 0.85 });
             lineaLado.bindTooltip(`${distanciaLadoCompleto.toFixed(1)} m`, {
-                permanent: true,
-                direction: 'center',
-                className: 'etiqueta-medida-segmento'
+                permanent: true, direction: 'center', className: 'etiqueta-medida-segmento'
             });
-
             capaSegmentosMedidos.addLayer(lineaLado);
         }
     });
-
     capaSegmentosMedidos.addTo(map);
 }
 
-// INYECCIÓN DE LA TABLA AL PANEL FIJO LATERAL DERECHO
-function mostrarFichaEnPanelLateral(properties, idHoja) {
-    const panel = document.getElementById('panel-ficha-derecho');
-    const p = properties;
-
-    let fichaHtml = `
-        <div class="ficha-auditoria-container">
-            <div class="ficha-auditoria-header">
-                <span>HOJA ${p.Hoja || idHoja}</span>
-                <h3>FICHA DE PARCELA</h3>
-                <button class="cerrar-panel-ficha" onclick="cerrarPanelFicha()">✕</button>
-            </div>
-            <div class="ficha-auditoria-body">
-                <table class="ficha-tabla-dinamica">
-    `;
-
-    for (let key in p) {
-        let valor = p[key];
-        let keyLower = key.toLowerCase();
-        let claseEstilo = "";
-        
-        if (keyLower.includes("fecha")) {
-            valor = valor || "---";
-            claseEstilo = "td-fecha";
-        } else if (keyLower.includes("periodos")) {
-            valor = parseInt(valor, 10);
-            if (isNaN(valor)) valor = 0;
-            claseEstilo = "td-periodos";
-        } else if (keyLower.includes("total adeudado") || keyLower.includes("deuda") || keyLower.includes("monto")) {
-            valor = formatearMoneda(valor);
-            claseEstilo = "td-monto";
-        }
-        
-        fichaHtml += `
-            <tr>
-                <td class="label-col">${key}</td>
-                <td class="value-col ${claseEstilo}">${valor}</td>
-            </tr>
-        `;
-    }
-
-    fichaHtml += `</table></div></div>`;
-    panel.innerHTML = fichaHtml;
-    panel.style.display = 'block';
-}
-
-function cerrarPanelFicha() {
-    document.getElementById('panel-ficha-derecho').style.display = 'none';
-    capaSegmentosMedidos.clearLayers();
-}
-
-// 3. CAPA PARCELAS COMPLETA CON PARCHE DE PROTECCIÓN GEOMÉTRICA (EVITA EL ERROR LATLNGS)
+// 3. CAPA PARCELAS CON PANEL DE DATOS FIJO E IZQUIERDO
 function cargarParcelas(idHoja, bounds, idParcelaAIluminar = null) {
     if (capaParcelas) map.removeLayer(capaParcelas);
     capaSegmentosMedidos.clearLayers(); 
-    document.getElementById('panel-ficha-derecho').style.display = 'none';
     renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar);
 }
 
 function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
     capaParcelas = L.geoJSON(datosRuralesGlobal, {
-        // FILTRADO CON CONTROL DE INTEGRIDAD
         filter: (feature) => {
             if (!feature.properties || !feature.properties.Hoja) return false;
-            
-            // Si la parcela no tiene coordenadas asignadas o viene rota en el GeoJSON, la saltea silenciosamente
-            if (!feature.geometry || !feature.geometry.coordinates || feature.geometry.coordinates.length === 0) {
-                console.warn(`Aviso Catastral: Se omitió un lote en la Hoja ${idHoja} por geometría ausente o corrupta.`);
-                return false;
-            }
-            
+            if (!feature.geometry || !feature.geometry.coordinates || feature.geometry.coordinates.length === 0) return false;
             return parseInt(feature.properties.Hoja, 10) === parseInt(idHoja, 10);
         },
         style: (feature) => {
-            if (idParcelaAIluminar && feature.properties.PARTIDA === idParcelaAIluminar) {
-                return { color: '#000000', weight: 3, fillColor: '#ffff00', fillOpacity: 0.5 };
+            const p = feature.properties;
+            if (idParcelaAIluminar && p.PARTIDA === idParcelaAIluminar) {
+                return { color: '#002855', weight: 4, fillColor: '#00b4d8', fillOpacity: 0.8 };
             }
-            return { color: '#d35400', weight: 1, fillColor: '#e67e22', fillOpacity: 0.2 };
+            let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
+            let periodos = parseInt(p[keyPeriodos]) || 0;
+            let colorSemaforo = '#2ecc71'; 
+
+            if (periodos >= 2 && periodos <= 3) { colorSemaforo = '#f1c40f'; } 
+            else if (periodos >= 4) { colorSemaforo = '#e74c3c'; }
+
+            return { color: '#7f8c8d', weight: 1, fillColor: colorSemaforo, fillOpacity: 0.5 };
         },
         onEachFeature: (feature, layer) => {
             const p = feature.properties;
-            
-            // CONTROL DE SEGURIDAD PARA EL TOOLTIP: Verifica si el polígono responde límites válidos
             if (p.TGIRural && typeof layer.getBounds === 'function') {
                 try {
                     const boundsLayer = layer.getBounds();
                     if (boundsLayer.isValid()) {
                         layer.bindTooltip(p.TGIRural.toString(), { 
-                            permanent: true, 
-                            direction: 'center', 
-                            className: 'etiqueta-parcela' 
+                            permanent: true, direction: 'center', className: 'etiqueta-parcela' 
                         });
                     }
-                } catch (error) {
-                    console.error("Leaflet no pudo calcular el centro del polígono para el Tooltip:", p.TGIRural, error);
-                }
+                } catch (e) {}
             }
 
             layer.on('click', function(e) {
                 medirLadosDeParcela(feature);
-                mostrarFichaEnPanelLateral(p, idHoja);
-                L.DomEvent.stopPropagation(e);
+
+                let tablaHtml = `<table class="ficha-tabla">`;
+                for (let key in p) {
+                    let valor = p[key];
+                    let keyMinuscula = key.toLowerCase();
+
+                    if (keyMinuscula.includes("periodos deuda")) {
+                        valor = parseInt(valor, 10) || 0;
+                    } else if (keyMinuscula === "total adeudado sin judic." || keyMinuscula.includes("importe") || keyMinuscula.includes("monto")) {
+                        valor = formatearMoneda(valor);
+                    }
+                    tablaHtml += `<tr><td class="label" style="font-weight:bold; color:#7f8c8d; padding-right:15px; font-size:11px;">${key}</td><td style="font-size:11px; color:#333; font-weight: 500;">${valor}</td></tr>`;
+                }
+                tablaHtml += `</table>`;
+
+                document.getElementById('contenido-tabla-datos').innerHTML = tablaHtml;
+                document.getElementById('panel-datos-parcela').style.display = 'block';
+                if (e && e.latlng) L.DomEvent.stopPropagation(e);
             });
 
             if (idParcelaAIluminar && p.PARTIDA === idParcelaAIluminar) {
                 setTimeout(() => {
                     if (layer._path) layer._path.classList.add('parcela-titilando');
                     medirLadosDeParcela(feature); 
-                    mostrarFichaEnPanelLateral(p, idHoja);
+                    layer.fireEvent('click'); 
                 }, 600);
             }
         }
@@ -297,14 +243,15 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
 
     if (map.hasLayer(capaZonas)) map.removeLayer(capaZonas);
     
-    // Zoom elástico dinámico: si falla el bound nativo de la zona, encuadra las parcelas reales renderizadas en pantalla
     if (bounds && typeof bounds.isValid === 'function' && bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [30, 120] });
-    } else if (capaParcelas.getLayers().length > 0) {
-        map.fitBounds(capaParcelas.getBounds(), { padding: [30, 120] });
+        map.fitBounds(bounds, { padding: [30, 30] });
     }
-
     document.getElementById('btn-reset').style.display = 'block';
+}
+
+function cerrarPanelDatos() {
+    document.getElementById('panel-datos-parcela').style.display = 'none';
+    document.getElementById('contenido-tabla-datos').innerHTML = "";
 }
 
 // 4. AUTOCOMPLETADO OPTIMIZADO
@@ -312,7 +259,6 @@ function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
     datalist.innerHTML = ""; 
-    
     if (valor.length < 2 || !datosRuralesGlobal) return;
     let contador = 0;
     
@@ -324,28 +270,13 @@ function actualizarCoincidencias() {
         
         if (partida.toLowerCase().includes(valor) || tgi.toLowerCase().includes(valor) || titular.toLowerCase().includes(valor)) {
             const option = document.createElement('option');
-            if (titular && titular.toLowerCase().includes(valor)) {
-                option.value = titular;
-            } else if (tgi.toLowerCase().includes(valor)) {
-                option.value = tgi;
-            } else {
-                option.value = partida;
-            }
+            if (titular && titular.toLowerCase().includes(valor)) option.value = titular;
+            else if (tgi.toLowerCase().includes(valor)) option.value = tgi;
+            else option.value = partida;
             option.label = `(TGI: ${tgi} | Partida: ${partida})`;
             datalist.appendChild(option);
             contador++; 
             if (contador >= 8) break; 
-        }
-    }
-}
-
-function capturarSeleccionDatalist(valor) {
-    if (!datosRuralesGlobal) return;
-    const opciones = document.getElementById('coincidencias').childNodes;
-    for (let i = 0; i < opciones.length; i++) {
-        if (opciones[i].value === valor) {
-            ejecutarBusqueda();
-            break;
         }
     }
 }
@@ -364,114 +295,181 @@ function ejecutarBusqueda() {
     });
 
     if (parcelasEncontradas.length > 0) {
-        hacerFocoEnParcelas(parcelasEncontradas);
+        const idHoja = parcelasEncontradas[0].properties.Hoja;
+        const partidaPrincipal = parcelasEncontradas[0].properties.PARTIDA;
+        const grupoTemporal = L.featureGroup(parcelasEncontradas.map(f => L.geoJSON(f)));
+        const boundsGlobales = grupoTemporal.getBounds();
+        comenzarAuditoriaZona(idHoja, boundsGlobales);
+        setTimeout(() => { cargarParcelas(idHoja, boundsGlobales, partidaPrincipal); }, 200);
     } else { 
         alert("No se encontró ningún registro catastral coincidente."); 
     }
 }
 
-function hacerFocoEnParcelas(listaParcelas) {
-    const idHoja = listaParcelas[0].properties.Hoja;
-    const partidaPrincipal = listaParcelas[0].properties.PARTIDA;
-    const grupoTemporal = L.featureGroup(listaParcelas.map(f => L.geoJSON(f)));
-    const boundsGlobales = grupoTemporal.getBounds();
-    comenzarAuditoriaZona(idHoja, boundsGlobales);
-    setTimeout(() => { cargarParcelas(idHoja, boundsGlobales, partidaPrincipal); }, 200);
-}
-
-// 6. RANKING DE DEUDORES
-function mostrarTopDeudores() {
-    if (!datosRuralesGlobal) { alert("Cargando datos..."); return; }
-    const tableBody = document.getElementById('cuerpo-tabla-reporte');
-    tableBody.innerHTML = ""; 
+// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO (SÓLO PORCENTAJES)
+function toggleGraficoSemaforo() {
+    const modal = document.getElementById('modal-grafico-barras');
+    const btn = document.getElementById('btn-grafico');
     
-    let listaParcelas = datosRuralesGlobal.features.map(f => f.properties);
-    const columnaDeuda = "Total Adeudado sin Judic.";
-    listaParcelas.sort((a, b) => limpiarMonto(b[columnaDeuda]) - limpiarMonto(a[columnaDeuda]));
-
-    let tgiProcesados = new Set();
-    let listaFiltradaSinRepetir = [];
-
-    for (let p of listaParcelas) {
-        let tgi = p["TGIRural"] ? p["TGIRural"].toString().trim() : null;
-        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
-        let periodos = parseInt(p[keyPeriodos], 10);
-        if (isNaN(periodos)) periodos = 0;
-        if (periodos <= 5) continue; 
-        if (tgi) {
-            if (tgiProcesados.has(tgi)) continue; 
-            tgiProcesados.add(tgi);
-            listaFiltradaSinRepetir.push(p);
-        }
-        if (listaFiltradaSinRepetir.length >= 50) break;
+    if (graficoVisible) {
+        modal.style.display = 'none';
+        btn.classList.remove('activo');
+    } else {
+        generarGraficoBarrasDinamicas();
+        modal.style.display = 'block';
+        btn.classList.add('activo');
     }
-
-    listaFiltradaSinRepetir.forEach((p, index) => {
-        let tgi = p["TGIRural"] || "---";
-        let nombre = p["Tit. Nombre"] || "SIN TITULAR";
-        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
-        let periodos = parseInt(p[keyPeriodos], 10);
-        if (isNaN(periodos)) periodos = 0;
-        let deudaFormateada = formatearMoneda(p[columnaDeuda]);
-
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td><strong>${index + 1}</strong></td>
-            <td><a href="#" class="link-tgi-mapa" onclick="irAParcelaDesdeReporte('${tgi}')">🎯 ${tgi}</a></td>
-            <td>${nombre}</td>
-            <td style="text-align: center; color: #7f8c8d; font-weight: bold;">${periodos}</td>
-            <td style="font-weight: bold; color: #c0392b;">${deudaFormateada}</td>
-        `;
-        tableBody.appendChild(fila);
-    });
-
-    document.getElementById('map').style.display = 'none';
-    document.getElementById('panel-busqueda-lateral').style.display = 'none';
-    document.getElementById('contenedor-logo-mapa').style.display = 'none';
-    document.getElementById('panel-ficha-derecho').style.display = 'none';
-    document.querySelector('.botones-controles-derechos').style.display = 'none';
-    document.getElementById('pantalla-reporte').style.display = 'block';
+    graficoVisible = !graficoVisible;
 }
 
-function irAParcelaDesdeReporte(tgiBuscado) {
+function obtenerCategoriaSemaforo(periodos) {
+    if (periodos >= 2 && periodos <= 3) return 'Amarillo';
+    if (periodos >= 4) return 'Rojo';
+    return 'Verde';
+}
+
+function generarGraficoBarrasDinamicas() {
     if (!datosRuralesGlobal) return;
-    let tgiBuscadoLimpio = tgiBuscado.toString().trim().toUpperCase();
-    const parcelas = datosRuralesGlobal.features.filter(f => {
-        if (!f.properties.TGIRural) return false;
-        let tgiGeoJson = f.properties.TGIRural.toString().trim().toUpperCase();
-        if (tgiGeoJson === tgiBuscadoLimpio) return true;
-        let tgiBuscadoSinCeros = tgiBuscadoLimpio.replace(/^0+/, '');
-        let tgiGeoJsonSinCeros = tgiGeoJson.replace(/^0+/, '');
-        return tgiBuscadoSinCeros === tgiGeoJsonSinCeros;
+    
+    let total = datosRuralesGlobal.features.length;
+    let counts = { Verde: 0, Amarillo: 0, Rojo: 0 };
+    
+    datosRuralesGlobal.features.forEach(f => {
+        let p = f.properties;
+        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
+        let periodos = parseInt(p[keyPeriodos], 10) || 0;
+        counts[obtenerCategoriaSemaforo(periodos)]++;
     });
-    if (parcelas.length > 0) { 
-        cerrarReporte(); 
-        hacerFocoEnParcelas(parcelas); 
-    } else { 
-        alert(`No se localizó la parcela con TGI "${tgiBuscado}" en el mapa.`); 
+
+    let pctV = total > 0 ? ((counts.Verde / total) * 100).toFixed(1) : 0;
+    let pctA = total > 0 ? ((counts.Amarillo / total) * 100).toFixed(1) : 0;
+    let pctR = total > 0 ? ((counts.Rojo / total) * 100).toFixed(1) : 0;
+
+    document.getElementById('contenedor-barras-dinamicas').innerHTML = `
+        <div class="tarjeta-metrica-global">
+            <div class="item-barra-progreso">
+                <div class="info-barra"><span>🟢 Al Día (0-1 per.)</span> <strong>${pctV}%</strong></div>
+                <div class="linea-progreso-fondo"><div class="linea-progreso-relleno verde" style="width: ${pctV}%"></div></div>
+            </div>
+            <div class="item-barra-progreso">
+                <div class="info-barra"><span>🟡 Mediana (2-3 per.)</span> <strong>${pctA}%</strong></div>
+                <div class="linea-progreso-fondo"><div class="linea-progreso-relleno amarillo" style="width: ${pctA}%"></div></div>
+            </div>
+            <div class="item-barra-progreso">
+                <div class="info-barra"><span>🔴 Crítica (4+ per.)</span> <strong>${pctR}%</strong></div>
+                <div class="linea-progreso-fondo"><div class="linea-progreso-relleno rojo" style="width: ${pctR}%"></div></div>
+            </div>
+        </div>
+    `;
+}
+
+// 7. CONTROLADOR DE PANTALLA COMPLETA: TOP 50 CON AGRUPACIÓN Y UNIFICACIÓN POR TGI
+function toggleTopDeudores() {
+    const vistaCompleta = document.getElementById('pantalla-completa-top');
+    const btn = document.getElementById('btn-top-deudores');
+    
+    if (topDeudoresVisible) {
+        vistaCompleta.style.display = 'none';
+        btn.classList.remove('activo');
+    } else {
+        generarGranTablaTop50Unificada();
+        vistaCompleta.style.display = 'block';
+        btn.classList.add('activo');
     }
+    topDeudoresVisible = !topDeudoresVisible;
 }
 
-// 7. CONTROLES GENERALES Y RE-ENCENDIDO DE VISTA GENERAL
-function cerrarReporte() {
-    document.getElementById('pantalla-reporte').style.display = 'none';
-    document.getElementById('map').style.display = 'block';
-    document.getElementById('panel-busqueda-lateral').style.display = 'block';
-    document.getElementById('contenedor-logo-mapa').style.display = 'block';
-    document.querySelector('.botones-controles-derechos').style.display = 'flex';
-    if (capaParcelas && map.hasLayer(capaParcelas)) document.getElementById('btn-reset').style.display = 'block';
-    setTimeout(() => { map.invalidateSize(); }, 100);
+function generarGranTablaTop50Unificada() {
+    if (!datosRuralesGlobal) return;
+    
+    // Diccionario temporal para consolidar registros por su Código TGI único
+    let mapTGI = {};
+    
+    datosRuralesGlobal.features.forEach(f => {
+        let p = f.properties;
+        let tgiRaw = p["TGIRural"] ? p["TGIRural"].toString().trim() : "S/D";
+        
+        let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
+        let periodos = parseInt(p[keyPeriodos], 10) || 0;
+
+        let keyMonto = Object.keys(p).find(k => k.toLowerCase().includes("total adeudado") || k.toLowerCase().includes("importe") || k.toLowerCase().includes("monto")) || "Total Adeudado sin judic.";
+        let montoLimpio = limpiarMonto(p[keyMonto]);
+
+        if (montoLimpio > 0) {
+            if (!mapTGI[tgiRaw]) {
+                // Si el TGI no existe en el mapa, lo registramos por primera vez
+                mapTGI[tgiRaw] = {
+                    tgi: tgiRaw,
+                    titular: p["Tit. Nombre"] || "Sin Titular",
+                    periodos: periodos, // Iniciamos el conteo de periodos
+                    monto: montoLimpio  // Iniciamos la suma acumulativa
+                };
+            } else {
+                // Si ya existe, unificamos la deuda sumando los montos
+                mapTGI[tgiRaw].monto += montoLimpio;
+                // Sostenemos el estado crítico más severo detectado
+                if (periodos > mapTGI[tgiRaw].periodos) {
+                    mapTGI[tgiRaw].periodos = periodos;
+                }
+            }
+        }
+    });
+
+    // Convertimos el mapa agrupado a un Array indexable para poder ordenarlo
+    let deudoresUnificados = Object.values(mapTGI);
+
+    // Ordenación descendente de Mayor a Menor monto acumulado
+    deudoresUnificados.sort((a, b) => b.monto - a.monto);
+    
+    // Selección estricta del Top 50 definitivo libre de duplicaciones
+    let top50 = deudoresUnificados.slice(0, 50);
+
+    let filasTopHtml = "";
+    top50.forEach((d) => {
+        let claseColorSemaforo = d.periodos >= 4 ? 'badge-rojo' : (d.periodos >= 2 ? 'badge-amarillo' : 'badge-verde');
+        filasTopHtml += `
+            <tr onclick="hacerClicFilaTop('${d.tgi}')">
+                <td><span class="celda-tgi-resaltada">${d.tgi}</span></td>
+                <td><b>${d.titular}</b></td>
+                <td style="text-align:center;"><span class="badge-periodos ${claseColorSemaforo}">${d.periodos} períodos</span></td>
+                <td style="text-align:right; font-weight:700; color:#1e293b; font-size:14px;">${formatearMoneda(d.monto)}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('contenedor-tabla-grande-top').innerHTML = `
+        <table class="gran-tabla-reporte">
+            <thead>
+                <tr>
+                    <th>Código TGI</th>
+                    <th>Contribuyente / Titular Catastral</th>
+                    <th style="text-align:center; width:180px;">Estado Deuda (Máx)</th>
+                    <th style="text-align:right; width:220px;">Monto Total Adeudado Unificado</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filasTopHtml || '<tr><td colspan="4" style="text-align:center; padding:30px; color:#95a5a6; font-size:14px;">No se registran datos de deuda consolidada.</td></tr>'}
+            </tbody>
+        </table>
+    `;
 }
 
+function hacerClicFilaTop(tgiBuscado) {
+    // Al hacer clic, cerramos la pantalla grande para volver al mapa dinámico
+    toggleTopDeudores();
+    
+    // Inyectamos el código de TGI directo al buscador de parcelas
+    document.getElementById('input-busqueda').value = tgiBuscado;
+    ejecutarBusqueda();
+}
+
+// 8. CONTROLES GENERALES Y RESETEO
 function volverAlMapa() {
     if (capaParcelas) map.removeLayer(capaParcelas);
     if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
     capaSegmentosMedidos.clearLayers(); 
-    document.getElementById('panel-ficha-derecho').style.display = 'none';
-    
-    // Enciende nuevamente el mapa completo de zonas de colores
+    cerrarPanelDatos();
     if (!map.hasLayer(capaZonas)) capaZonas.addTo(map);
-    
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('input-busqueda').value = ""; 
     document.getElementById('input-coordenadas').value = "";
