@@ -55,13 +55,58 @@ body {
 #contenedor-coordenadas input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
 #contenedor-coordenadas button { background: #2980b9; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
+/* PANEL FIJO DE LEYENDA DEL SEMÁFORO (NUEVO) */
+#panel-leyenda-semaforo {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+}
+
+#panel-leyenda-semaforo h4 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+}
+
+.items-leyenda {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.item-leyenda {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.circulo-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+.circulo-color.verde { background-color: #2ecc71; }
+.circulo-color.amarillo { background-color: #f1c40f; }
+.circulo-color.rojo { background-color: #e74c3c; }
+
 /* PANEL DE DATOS CATASTRAL */
 #panel-datos-parcela {
     background: white;
     border-radius: 8px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     padding: 12px 14px;
-    max-height: 400px;
+    max-height: 300px;
     overflow-y: auto;
     border: 1px solid #ddd;
     animation: slideInLeft 0.25s ease-out;
@@ -131,9 +176,7 @@ body {
 .parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
 @keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
 
-/* ====================================================
-   MODAL 1: GRÁFICO DE BARRAS (SÓLO PORCENTAJES)
-   ==================================================== */
+/* MODAL: GRÁFICO DE BARRAS */
 #modal-grafico-barras {
     position: absolute;
     bottom: 30px;
@@ -171,7 +214,7 @@ body {
 
 
 /* ====================================================
-   NUEVA ESTRUCTURA: REPORTE TOP 50 COMPLETAMENTE LIMPIO
+   ESTRUCTURA DE PANTALLA COMPLETA: REPORTE DE DEUDA
    ==================================================== */
 #pantalla-completa-top {
     position: fixed;
@@ -232,7 +275,7 @@ body {
     font-size: 13px;
 }
 
-/* Diseño de la Tabla Simplificada de 4 columnas */
+/* Tabla Maestra Dinámica */
 #contenedor-tabla-grande-top {
     flex-grow: 1;
     margin-bottom: 30px;
@@ -290,14 +333,12 @@ body {
     display: inline-block;
 }
 .badge-rojo { background: #ef4444; }
-.badge-amarillo { background: #f59e0b; color: #1e293b; }
-.badge-verde { background: #10b981; }
 
 .encabezado-impresion-formal { display: none; }
 
 
 /* ====================================================
-   REGLAS DE IMPRESIÓN LIMPIA (B&W COMPATIBLE)
+   REGLAS DE IMPRESIÓN LIMPIA (PRINT CSS)
    ==================================================== */
 @media print {
     .no-imprimir, #map, .botones-controles-derechos, #panel-busqueda-lateral, #contenedor-logo-mapa, .encabezado-informe-pantalla {

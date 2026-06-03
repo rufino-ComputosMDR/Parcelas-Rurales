@@ -363,7 +363,7 @@ function generarGraficoBarrasDinamicas() {
     `;
 }
 
-// 7. CONTROLADOR DE PANTALLA COMPLETA: TOP 50 CON AGRUPACIÓN Y UNIFICACIÓN POR TGI
+// 7. CONTROLADOR DE PANTALLA COMPLETA: DEUDORES TOP 50 (6 O MÁS PERÍODOS COINCIDENTES)
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -382,7 +382,6 @@ function toggleTopDeudores() {
 function generarGranTablaTop50Unificada() {
     if (!datosRuralesGlobal) return;
     
-    // Diccionario temporal para consolidar registros por su Código TGI único
     let mapTGI = {};
     
     datosRuralesGlobal.features.forEach(f => {
@@ -397,17 +396,14 @@ function generarGranTablaTop50Unificada() {
 
         if (montoLimpio > 0) {
             if (!mapTGI[tgiRaw]) {
-                // Si el TGI no existe en el mapa, lo registramos por primera vez
                 mapTGI[tgiRaw] = {
                     tgi: tgiRaw,
                     titular: p["Tit. Nombre"] || "Sin Titular",
-                    periodos: periodos, // Iniciamos el conteo de periodos
-                    monto: montoLimpio  // Iniciamos la suma acumulativa
+                    periodos: periodos, 
+                    monto: montoLimpio  
                 };
             } else {
-                // Si ya existe, unificamos la deuda sumando los montos
                 mapTGI[tgiRaw].monto += montoLimpio;
-                // Sostenemos el estado crítico más severo detectado
                 if (periodos > mapTGI[tgiRaw].periodos) {
                     mapTGI[tgiRaw].periodos = periodos;
                 }
@@ -415,23 +411,21 @@ function generarGranTablaTop50Unificada() {
         }
     });
 
-    // Convertimos el mapa agrupado a un Array indexable para poder ordenarlo
     let deudoresUnificados = Object.values(mapTGI);
 
-    // Ordenación descendente de Mayor a Menor monto acumulado
-    deudoresUnificados.sort((a, b) => b.monto - a.monto);
-    
-    // Selección estricta del Top 50 definitivo libre de duplicaciones
-    let top50 = deudoresUnificados.slice(0, 50);
+    // Filtrar cuentas unificadas con 6 o más períodos de deuda
+    let deudoresFiltrados = deudoresUnificados.filter(d => d.periodos >= 6);
+
+    // Ordenación de Mayor a Menor monto adeudado consolidado
+    deudoresFiltrados.sort((a, b) => b.monto - a.monto);
 
     let filasTopHtml = "";
-    top50.forEach((d) => {
-        let claseColorSemaforo = d.periodos >= 4 ? 'badge-rojo' : (d.periodos >= 2 ? 'badge-amarillo' : 'badge-verde');
+    deudoresFiltrados.forEach((d) => {
         filasTopHtml += `
             <tr onclick="hacerClicFilaTop('${d.tgi}')">
                 <td><span class="celda-tgi-resaltada">${d.tgi}</span></td>
                 <td><b>${d.titular}</b></td>
-                <td style="text-align:center;"><span class="badge-periodos ${claseColorSemaforo}">${d.periodos} períodos</span></td>
+                <td style="text-align:center;"><span class="badge-periodos badge-rojo">${d.periodos} períodos</span></td>
                 <td style="text-align:right; font-weight:700; color:#1e293b; font-size:14px;">${formatearMoneda(d.monto)}</td>
             </tr>
         `;
@@ -443,22 +437,19 @@ function generarGranTablaTop50Unificada() {
                 <tr>
                     <th>Código TGI</th>
                     <th>Contribuyente / Titular Catastral</th>
-                    <th style="text-align:center; width:180px;">Estado Deuda (Máx)</th>
+                    <th style="text-align:center; width:180px;">Estado Deuda</th>
                     <th style="text-align:right; width:220px;">Monto Total Adeudado Unificado</th>
                 </tr>
             </thead>
             <tbody>
-                ${filasTopHtml || '<tr><td colspan="4" style="text-align:center; padding:30px; color:#95a5a6; font-size:14px;">No se registran datos de deuda consolidada.</td></tr>'}
+                ${filasTopHtml || '<tr><td colspan="4" style="text-align:center; padding:30px; color:#95a5a6; font-size:14px;">No se registran cuentas rurales que cumplan con el criterio de 6 o más períodos adeudados.</td></tr>'}
             </tbody>
         </table>
     `;
 }
 
 function hacerClicFilaTop(tgiBuscado) {
-    // Al hacer clic, cerramos la pantalla grande para volver al mapa dinámico
     toggleTopDeudores();
-    
-    // Inyectamos el código de TGI directo al buscador de parcelas
     document.getElementById('input-busqueda').value = tgiBuscado;
     ejecutarBusqueda();
 }
