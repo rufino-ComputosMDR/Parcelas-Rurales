@@ -64,7 +64,11 @@ fetch('zonas.geojson')
 
 fetch('rurales.geojson')
     .then(res => res.json())
-    .then(data => { datosRuralesGlobal = data; })
+    .then(data => { 
+        datosRuralesGlobal = data; 
+        // Escuchador para detectar cuando el usuario selecciona una opción del datalist
+        configurarLanzadorAutomaticoDatalist();
+    })
     .catch(err => console.error("Error rurales:", err));
 
 
@@ -254,31 +258,56 @@ function cerrarPanelDatos() {
     document.getElementById('contenido-tabla-datos').innerHTML = "";
 }
 
-// 4. AUTOCOMPLETADO OPTIMIZADO
+// 4. AUTOCOMPLETADO CORREGIDO PARA TEXTO Y LETRAS
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
     datalist.innerHTML = ""; 
+    
     if (valor.length < 2 || !datosRuralesGlobal) return;
     let contador = 0;
     
     for (let f of datosRuralesGlobal.features) {
         const p = f.properties;
-        const partida = p["PARTIDA"] ? p["PARTIDA"].toString() : "";
-        const tgi = p["TGIRural"] ? p["TGIRural"].toString() : "";
-        const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString() : "";
+        const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
+        const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
+        const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
         
-        if (partida.toLowerCase().includes(valor) || tgi.toLowerCase().includes(valor) || titular.toLowerCase().includes(valor)) {
+        // Verifica si el término ingresado (letras o números) coincide con alguna propiedad
+        if (partida.includes(valor) || tgi.includes(valor) || titular.includes(valor)) {
             const option = document.createElement('option');
-            if (titular && titular.toLowerCase().includes(valor)) option.value = titular;
-            else if (tgi.toLowerCase().includes(valor)) option.value = tgi;
-            else option.value = partida;
-            option.label = `(TGI: ${tgi} | Partida: ${partida})`;
+            
+            // Priorizamos mostrar en el value el dato exacto con el que hubo coincidencia tipográfica
+            if (titular.includes(valor)) {
+                option.value = p["Tit. Nombre"];
+            } else if (tgi.includes(valor)) {
+                option.value = p["TGIRural"].toString();
+            } else {
+                option.value = p["PARTIDA"].toString();
+            }
+            
+            option.label = `(TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]} | ${p["Tit. Nombre"] || 'S/D'})`;
             datalist.appendChild(option);
             contador++; 
-            if (contador >= 8) break; 
+            if (contador >= 12) break; // Mostramos hasta 12 opciones legibles
         }
     }
+}
+
+// Lanza la búsqueda automática en el mapa cuando detecta que se seleccionó una de las opciones
+function configurarLanzadorAutomaticoDatalist() {
+    const input = document.getElementById('input-busqueda');
+    input.addEventListener('input', function(e) {
+        const datalist = document.getElementById('coincidencias');
+        // Si el valor ingresado coincide exactamente con una de las opciones disponibles del datalist, se ejecuta solo
+        for (let option of datalist.options) {
+            if (input.value === option.value) {
+                ejecutarBusqueda();
+                input.blur(); // Quita el foco del buscador para cerrar el teclado virtual/móvil
+                break;
+            }
+        }
+    });
 }
 
 // 5. MOTOR DE BÚSQUEDA CATASTRAL
@@ -363,7 +392,7 @@ function generarGraficoBarrasDinamicas() {
     `;
 }
 
-// 7. CONTROLADOR DE PANTALLA COMPLETA: DEUDORES TOP 50 (6 O MÁS PERÍODOS COINCIDENTES)
+// 7. CONTROLADOR DE PANTALLA COMPLETA: DEUDORES TOP 50
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -412,11 +441,7 @@ function generarGranTablaTop50Unificada() {
     });
 
     let deudoresUnificados = Object.values(mapTGI);
-
-    // Filtrar cuentas unificadas con 6 o más períodos de deuda
     let deudoresFiltrados = deudoresUnificados.filter(d => d.periodos >= 6);
-
-    // Ordenación de Mayor a Menor monto adeudado consolidado
     deudoresFiltrados.sort((a, b) => b.monto - a.monto);
 
     let filasTopHtml = "";
