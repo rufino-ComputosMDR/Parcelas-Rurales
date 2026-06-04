@@ -19,7 +19,9 @@ body, html {
     z-index: 1;
 }
 
-/* MENÚ SUPERIOR */
+/* ==========================================================================
+   MENÚ SUPERIOR DE CONTROLES
+   ========================================================================== */
 #menu-controles {
     position: fixed;
     top: 0;
@@ -96,7 +98,9 @@ body, html {
     margin-left: auto;
 }
 
-/* PANEL LATERAL */
+/* ==========================================================================
+   PANEL LATERAL (FICHA CATASTRAL)
+   ========================================================================== */
 .panel-lateral {
     position: absolute;
     top: 75px;
@@ -140,7 +144,9 @@ body, html {
     padding: 6px 4px;
 }
 
-/* MODAL SEMÁFORO */
+/* ==========================================================================
+   MODAL FLOTANTE (GRÁFICO SEMÁFORO)
+   ========================================================================== */
 .modal-grafico {
     position: absolute;
     bottom: 20px;
@@ -186,7 +192,7 @@ body, html {
 
 
 /* ==========================================================================
-   REPORTE VISTA COMPLETA (TOP DEUDORES) - DISEÑO OPTIMIZADO
+   PANTALLA COMPLETA: REPORTE DE DEUDORES (ESCRITORIO)
    ========================================================================== */
 .vista-completa {
     position: fixed;
@@ -194,7 +200,7 @@ body, html {
     left: 0;
     width: 100%;
     height: calc(100vh - 60px);
-    background-color: #f8fafc; /* Fondo gris tenue institucional */
+    background-color: #f8fafc; 
     z-index: 1999;
     padding: 40px 60px;
     overflow-y: auto;
@@ -235,7 +241,6 @@ body, html {
     color: #1e293b;
 }
 
-/* Rediseño de la estructura de la Tabla */
 .gran-tabla-reporte {
     width: 100%;
     border-collapse: separate; 
@@ -266,7 +271,6 @@ body, html {
     transition: background-color 0.15s ease;
 }
 
-/* Efecto hover elegante al pasar el mouse por las filas */
 .gran-tabla-reporte tbody tr { 
     cursor: pointer; 
 }
@@ -275,7 +279,6 @@ body, html {
     background-color: #f8fafc; 
 }
 
-/* El código TGI ahora parece un tag tecnológico limpio */
 .celda-tgi-resaltada {
     background-color: #f0fdf4;
     color: #166534;
@@ -288,7 +291,6 @@ body, html {
     display: inline-block;
 }
 
-/* Badge del estado de deuda modificado a colores planos institucionales */
 .badge-periodos {
     padding: 6px 14px;
     border-radius: 20px;
@@ -302,10 +304,11 @@ body, html {
     color: #991b1b; 
     border: 1px solid #fca5a5;
 }
-/* ========================================================================== */
 
 
-/* LABELS DE LEAFLET */
+/* ==========================================================================
+   ETIQUETAS Y CAPAS DE LEAFLET
+   ========================================================================== */
 .etiqueta-zona {
     background: rgba(15, 23, 42, 0.85) !important;
     border: none !important;
@@ -344,7 +347,7 @@ body, html {
     transform: translate(-50%, -120%);
 }
 
-/* ANIMACIÓN */
+/* ANIMACIONES */
 .parcela-titilando {
     animation: parpadeoLote 1.2s infinite alternate ease-in-out;
 }
@@ -354,65 +357,104 @@ body, html {
     100% { fill-opacity: 0.85; stroke-width: 5px; stroke: #f59e0b; }
 }
 
+
 /* ==========================================================================
-   ADAPTACIÓN EXCLUSIVA PARA CELULARES (PANTALLAS CHICAS / VERTICAL)
-   ========================================================================== */
-   @media screen and (max-width: 768px) {
-    /* Le damos más aire al contenedor en móviles */
-    .vista-completa {
-        padding: 20px 15px;
-    }
-
-    /* Achicamos un poco el título para que no ocupe media pantalla */
-    .cabecera-reporte h2 {
-        font-size: 16px;
-        line-height: 1.4;
-        padding-right: 10px;
-    }
-
-    /* Forzamos a la tabla a que permita scroll horizontal si el contenido es muy ancho,
-       o adaptamos sus celdas para que no colapsen */
-    .gran-tabla-reporte {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* ==========================================================================
-   ADAPTACIÓN EXCLUSIVA PARA CELULARES (PANTALLAS CHICAS / VERTICAL)
+   ADAPTACIÓN EXCLUSIVA PARA CELULARES (SISTEMA DE TARJETAS VERTICALES)
    ========================================================================== */
 @media screen and (max-width: 768px) {
-    /* Forzamos a toda la pantalla del reporte a permitir scroll si es necesario */
     .vista-completa {
-        padding: 20px 12px !important;
-        display: block !important;
-        width: 100% !important;
-        overflow-x: auto !important; /* Habilita el arrastre lateral con el dedo */
-        -webkit-overflow-scrolling: touch;
+        padding: 15px 10px !important;
+        background-color: #f1f5f9 !important; 
     }
 
     .cabecera-reporte {
-        flex-direction: column !important; /* Pone el botón abajo del título para ganar espacio */
-        align-items: flex-start !important;
-        gap: 10px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        margin-bottom: 15px !important;
+        padding-bottom: 12px !important;
     }
 
     .cabecera-reporte h2 {
         font-size: 15px !important;
+        text-align: center !important;
     }
 
-    /* Rediseño de la tabla para que actúe como un bloque deslizable */
-    .gran-tabla-reporte {
-        display: table !important;
+    .btn-cerrar-pantalla {
         width: 100% !important;
-        min-width: 600px !important; /* Forzamos un ancho mínimo interno para que NUNCA se cruce nada */
+        text-align: center !important;
+        padding: 12px !important;
     }
 
-    .gran-tabla-reporte th, 
+    /* Transformamos la tabla rígida en bloques flexibles apilados */
+    .gran-tabla-reporte {
+        display: block !important;
+        width: 100% !important;
+        background: transparent !important; 
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    /* Ocultamos las cabeceras de texto horizontales en el celular */
+    .gran-tabla-reporte thead {
+        display: none !important;
+    }
+
+    .gran-tabla-reporte tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Cada fila se convierte en una Tarjeta Separada */
+    .gran-tabla-reporte tbody tr {
+        display: flex !important;
+        flex-direction: column !important; 
+        background-color: #ffffff !important;
+        margin-bottom: 12px !important;
+        padding: 14px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.04) !important;
+        border: none !important;
+        gap: 8px !important;
+    }
+
+    /* Cada celda pasa a ser un renglón interno con lectura natural a la izquierda */
     .gran-tabla-reporte td {
-        padding: 10px 8px !important;
-        font-size: 12px !important;
-        white-space: nowrap !important; /* Obliga a que los datos se queden en una sola línea prolija */
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: none !important;
+        text-align: left !important; 
+        font-size: 13px !important;
+    }
+
+    /* Estructuración interna de datos en la tarjeta mobile */
+    .gran-tabla-reporte td:nth-child(1) {
+        order: 1 !important; /* TGI Primero */
+    }
+    
+    .gran-tabla-reporte td:nth-child(2) {
+        order: 2 !important; /* Nombre Segundo */
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        font-size: 14px !important;
+        margin-top: 2px !important;
+    }
+
+    .gran-tabla-reporte td:nth-child(3) {
+        order: 3 !important; /* Períodos de Deuda Tercero */
+        margin-top: 4px !important;
+    }
+
+    .gran-tabla-reporte td:nth-child(4) {
+        order: 4 !important; /* Monto Total al final, destacado y grande */
+        text-align: right !important; 
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        color: #b91c1c !important; 
+        border-top: 1px dashed #e2e8f0 !important;
+        padding-top: 8px !important;
+        margin-top: 4px !important;
     }
 }
