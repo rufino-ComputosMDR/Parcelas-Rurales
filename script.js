@@ -66,7 +66,6 @@ fetch('rurales.geojson')
     .then(res => res.json())
     .then(data => { 
         datosRuralesGlobal = data; 
-        // Escuchador para detectar cuando el usuario selecciona una opción del datalist
         configurarLanzadorAutomaticoDatalist();
     })
     .catch(err => console.error("Error rurales:", err));
@@ -78,6 +77,15 @@ function comenzarAuditoriaZona(idHoja, bounds) {
     }
     const idHojaNumerico = parseInt(idHoja, 10);
     cargarParcelas(idHojaNumerico, bounds);
+
+    generarGraficoBarrasDinamicas(idHojaNumerico);
+    const modal = document.getElementById('modal-grafico-barras');
+    const btn = document.getElementById('btn-grafico');
+    if (modal && btn) {
+        modal.style.display = 'block';
+        btn.classList.add('activo');
+        graficoVisible = true;
+    }
 }
 
 // 2. REFERENCIAS
@@ -172,14 +180,16 @@ function medirLadosDeParcela(feature) {
     capaSegmentosMedidos.addTo(map);
 }
 
-// 3. CAPA PARCELAS CON PANEL DE DATOS FIJO E IZQUIERDO
-function cargarParcelas(idHoja, bounds, idParcelaAIluminar = null) {
+// 3. CAPA PARCELAS
+function cargarParcelas(idHoja, bounds, valorBuscadoOriginal = null) {
     if (capaParcelas) map.removeLayer(capaParcelas);
     capaSegmentosMedidos.clearLayers(); 
-    renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar);
+    renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal);
 }
 
-function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
+function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
+    let unLoteYaAbrioFicha = false; 
+
     capaParcelas = L.geoJSON(datosRuralesGlobal, {
         filter: (feature) => {
             if (!feature.properties || !feature.properties.Hoja) return false;
@@ -188,9 +198,22 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
         },
         style: (feature) => {
             const p = feature.properties;
-            if (idParcelaAIluminar && p.PARTIDA === idParcelaAIluminar) {
+            
+            let coincideBusqueda = false;
+            if (valorBuscadoOriginal) {
+                const v = valorBuscadoOriginal.toLowerCase();
+                const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
+                const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
+                const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
+                if (partida === v || tgi === v || titular === v || titular.includes(v)) {
+                    coincideBusqueda = true;
+                }
+            }
+
+            if (coincideBusqueda) {
                 return { color: '#002855', weight: 4, fillColor: '#00b4d8', fillOpacity: 0.8 };
             }
+
             let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
             let periodos = parseInt(p[keyPeriodos]) || 0;
             let colorSemaforo = '#2ecc71'; 
@@ -235,12 +258,23 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
                 if (e && e.latlng) L.DomEvent.stopPropagation(e);
             });
 
-            if (idParcelaAIluminar && p.PARTIDA === idParcelaAIluminar) {
-                setTimeout(() => {
-                    if (layer._path) layer._path.classList.add('parcela-titilando');
-                    medirLadosDeParcela(feature); 
-                    layer.fireEvent('click'); 
-                }, 600);
+            if (valorBuscadoOriginal) {
+                const v = valorBuscadoOriginal.toLowerCase();
+                const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
+                const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
+                const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
+                
+                if (partida === v || tgi === v || titular === v || titular.includes(v)) {
+                    setTimeout(() => {
+                        if (layer._path) layer._path.classList.add('parcela-titilando');
+                        
+                        if (!unLoteYaAbrioFicha) {
+                            medirLadosDeParcela(feature); 
+                            layer.fireEvent('click'); 
+                            unLoteYaAbrioFicha = true;
+                        }
+                    }, 600);
+                }
             }
         }
     }).addTo(map);
@@ -256,9 +290,10 @@ function renderizarCapaParcelas(idHoja, bounds, idParcelaAIluminar) {
 function cerrarPanelDatos() {
     document.getElementById('panel-datos-parcela').style.display = 'none';
     document.getElementById('contenido-tabla-datos').innerHTML = "";
+    document.getElementById('input-busqueda').value = ""; 
 }
 
-// 4. AUTOCOMPLETADO CORREGIDO PARA TEXTO Y LETRAS
+// 4. AUTOCOMPLETADO
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
@@ -273,37 +308,36 @@ function actualizarCoincidencias() {
         const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
         
-        // Verifica si el término ingresado (letras o números) coincide con alguna propiedad
         if (partida.includes(valor) || tgi.includes(valor) || titular.includes(valor)) {
             const option = document.createElement('option');
             
-            // Priorizamos mostrar en el value el dato exacto con el que hubo coincidencia tipográfica
             if (titular.includes(valor)) {
                 option.value = p["Tit. Nombre"];
+                option.label = `[TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]}]`;
             } else if (tgi.includes(valor)) {
                 option.value = p["TGIRural"].toString();
+                option.label = `[Titular: ${p["Tit. Nombre"] || 'S/D'} | Partida: ${p["PARTIDA"]}]`;
             } else {
                 option.value = p["PARTIDA"].toString();
+                option.label = `[TGI: ${p["TGIRural"]} | Titular: ${p["Tit. Nombre"] || 'S/D'}]`;
             }
             
-            option.label = `(TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]} | ${p["Tit. Nombre"] || 'S/D'})`;
             datalist.appendChild(option);
             contador++; 
-            if (contador >= 12) break; // Mostramos hasta 12 opciones legibles
+            if (contador >= 10) break; 
         }
     }
 }
 
-// Lanza la búsqueda automática en el mapa cuando detecta que se seleccionó una de las opciones
 function configurarLanzadorAutomaticoDatalist() {
     const input = document.getElementById('input-busqueda');
+    if(!input) return;
     input.addEventListener('input', function(e) {
         const datalist = document.getElementById('coincidencias');
-        // Si el valor ingresado coincide exactamente con una de las opciones disponibles del datalist, se ejecuta solo
         for (let option of datalist.options) {
             if (input.value === option.value) {
                 ejecutarBusqueda();
-                input.blur(); // Quita el foco del buscador para cerrar el teclado virtual/móvil
+                input.blur(); 
                 break;
             }
         }
@@ -312,30 +346,31 @@ function configurarLanzadorAutomaticoDatalist() {
 
 // 5. MOTOR DE BÚSQUEDA CATASTRAL
 function ejecutarBusqueda() {
-    let valorBuscado = document.getElementById('input-busqueda').value.trim().toLowerCase();
+    let valorBuscado = document.getElementById('input-busqueda').value.trim();
     if (!valorBuscado) { alert("Ingrese un término para buscar."); return; }
+    let vLow = valorBuscado.toLowerCase();
 
     const parcelasEncontradas = datosRuralesGlobal.features.filter(f => {
         const p = f.properties;
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
         const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
-        return partida === valorBuscado || tgi === valorBuscado || titular === valorBuscado || titular.includes(valorBuscado);
+        return partida === vLow || tgi === vLow || titular === vLow || titular.includes(vLow);
     });
 
     if (parcelasEncontradas.length > 0) {
         const idHoja = parcelasEncontradas[0].properties.Hoja;
-        const partidaPrincipal = parcelasEncontradas[0].properties.PARTIDA;
         const grupoTemporal = L.featureGroup(parcelasEncontradas.map(f => L.geoJSON(f)));
         const boundsGlobales = grupoTemporal.getBounds();
+        
         comenzarAuditoriaZona(idHoja, boundsGlobales);
-        setTimeout(() => { cargarParcelas(idHoja, boundsGlobales, partidaPrincipal); }, 200);
+        setTimeout(() => { cargarParcelas(idHoja, boundsGlobales, valorBuscado); }, 200);
     } else { 
         alert("No se encontró ningún registro catastral coincidente."); 
     }
 }
 
-// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO (SÓLO PORCENTAJES)
+// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO
 function toggleGraficoSemaforo() {
     const modal = document.getElementById('modal-grafico-barras');
     const btn = document.getElementById('btn-grafico');
@@ -357,42 +392,70 @@ function obtenerCategoriaSemaforo(periodos) {
     return 'Verde';
 }
 
-function generarGraficoBarrasDinamicas() {
+function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     if (!datosRuralesGlobal) return;
     
-    let total = datosRuralesGlobal.features.length;
     let counts = { Verde: 0, Amarillo: 0, Rojo: 0 };
+    let total = 0;
     
     datosRuralesGlobal.features.forEach(f => {
         let p = f.properties;
+        
+        if (idHojaFiltro !== null) {
+            if (!p.Hoja || parseInt(p.Hoja, 10) !== parseInt(idHojaFiltro, 10)) {
+                return; 
+            }
+        }
+
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
         let periodos = parseInt(p[keyPeriodos], 10) || 0;
         counts[obtenerCategoriaSemaforo(periodos)]++;
+        total++;
     });
 
     let pctV = total > 0 ? ((counts.Verde / total) * 100).toFixed(1) : 0;
     let pctA = total > 0 ? ((counts.Amarillo / total) * 100).toFixed(1) : 0;
     let pctR = total > 0 ? ((counts.Rojo / total) * 100).toFixed(1) : 0;
 
+    let tituloGrafico = idHojaFiltro !== null ? `Sección / Hoja ${idHojaFiltro}` : "Estado Global Catastral";
+
     document.getElementById('contenedor-barras-dinamicas').innerHTML = `
+        <div style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #1e293b; font-size: 13px;">
+            📊 ${tituloGrafico} (${total} u.)
+        </div>
         <div class="tarjeta-metrica-global">
             <div class="item-barra-progreso">
-                <div class="info-barra"><span>🟢 Al Día (0-1 per.)</span> <strong>${pctV}%</strong></div>
+                <div class="info-barra"><span>🟢 Al Día</span> <strong>${pctV}%</strong></div>
                 <div class="linea-progreso-fondo"><div class="linea-progreso-relleno verde" style="width: ${pctV}%"></div></div>
             </div>
             <div class="item-barra-progreso">
-                <div class="info-barra"><span>🟡 Mediana (2-3 per.)</span> <strong>${pctA}%</strong></div>
+                <div class="info-barra"><span>🟡 Mediana</span> <strong>${pctA}%</strong></div>
                 <div class="linea-progreso-fondo"><div class="linea-progreso-relleno amarillo" style="width: ${pctA}%"></div></div>
             </div>
             <div class="item-barra-progreso">
-                <div class="info-barra"><span>🔴 Crítica (4+ per.)</span> <strong>${pctR}%</strong></div>
+                <div class="info-barra"><span>🔴 Deuda</span> <strong>${pctR}%</strong></div>
                 <div class="linea-progreso-fondo"><div class="linea-progreso-relleno rojo" style="width: ${pctR}%"></div></div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #64748b;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #2ecc71; border-radius: 50%; display: inline-block;"></span>
+                <span><strong>Al Día:</strong> 0 a 1 período adeudado.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #f1c40f; border-radius: 50%; display: inline-block;"></span>
+                <span><strong>Mediana:</strong> 2 a 3 períodos adeudados.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%; display: inline-block;"></span>
+                <span><strong>Deuda:</strong> 4 o más períodos adeudados.</span>
             </div>
         </div>
     `;
 }
 
-// 7. CONTROLADOR DE PANTALLA COMPLETA: DEUDORES TOP 50
+// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO FORMAL)
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -427,7 +490,7 @@ function generarGranTablaTop50Unificada() {
             if (!mapTGI[tgiRaw]) {
                 mapTGI[tgiRaw] = {
                     tgi: tgiRaw,
-                    titular: p["Tit. Nombre"] || "Sin Titular",
+                    titular: p["Tit. Nombre"] || "Sin Titular Registrado",
                     periodos: periodos, 
                     monto: montoLimpio  
                 };
@@ -447,27 +510,30 @@ function generarGranTablaTop50Unificada() {
     let filasTopHtml = "";
     deudoresFiltrados.forEach((d) => {
         filasTopHtml += `
-            <tr onclick="hacerClicFilaTop('${d.tgi}')">
-                <td><span class="celda-tgi-resaltada">${d.tgi}</span></td>
-                <td><b>${d.titular}</b></td>
-                <td style="text-align:center;"><span class="badge-periodos badge-rojo">${d.periodos} períodos</span></td>
-                <td style="text-align:right; font-weight:700; color:#1e293b; font-size:14px;">${formatearMoneda(d.monto)}</td>
+            <tr onclick="hacerClicFilaTop('${d.tgi}')" style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 12px 16px;"><span class="celda-tgi-resaltada" style="font-weight: 600; font-family: monospace;">${d.tgi}</span></td>
+                <td style="padding: 12px 16px; color: #1e293b; text-transform: uppercase; font-size: 12.5px;">${d.titular}</td>
+                <td style="text-align: center; padding: 12px 16px;"><span class="badge-periodos badge-rojo" style="font-weight: 600; font-size: 12px;">Periodos (${d.periodos} Per.)</span></td>
+                <td style="text-align: right; font-weight: 700; color: #0f172a; font-size: 14px; padding: 12px 16px; font-family: monospace;">${formatearMoneda(d.monto)}</td>
             </tr>
         `;
     });
 
     document.getElementById('contenedor-tabla-grande-top').innerHTML = `
-        <table class="gran-tabla-reporte">
+        <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; font-style: italic;">
+            * El presente informe detalla las obligaciones tributarias rurales unificadas por Código TGI que registran un estado de mora igual o superior a los 6 períodos fiscales acumulados.
+        </div>
+        <table class="gran-tabla-reporte" style="width:100%; border-collapse: collapse; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             <thead>
-                <tr>
-                    <th>Código TGI</th>
-                    <th>Contribuyente / Titular Catastral</th>
-                    <th style="text-align:center; width:180px;">Estado Deuda</th>
-                    <th style="text-align:right; width:220px;">Monto Total Adeudado Unificado</th>
+                <tr style="background-color: #f1f5f9;">
+                    <th style="padding: 14px 16px; text-align: left; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Identificador TGI</th>
+                    <th style="padding: 14px 16px; text-align: left; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contribuyente / Titular Registral</th>
+                    <th style="padding: 14px 16px; text-align: center; width: 200px; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Periodos Adeudados</th>
+                    <th style="padding: 14px 16px; text-align: right; width: 240px; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Deuda Acumulada</th>
                 </tr>
             </thead>
             <tbody>
-                ${filasTopHtml || '<tr><td colspan="4" style="text-align:center; padding:30px; color:#95a5a6; font-size:14px;">No se registran cuentas rurales que cumplan con el criterio de 6 o más períodos adeudados.</td></tr>'}
+                ${filasTopHtml || '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8; font-size: 13px;">No se registran cuentas tributarias rurales activas que cumplan con los criterios de auditoría previstos.</td></tr>'}
             </tbody>
         </table>
     `;
@@ -489,6 +555,15 @@ function volverAlMapa() {
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('input-busqueda').value = ""; 
     document.getElementById('input-coordenadas').value = "";
+    
+    const modal = document.getElementById('modal-grafico-barras');
+    const btn = document.getElementById('btn-grafico');
+    if(modal && btn) {
+        modal.style.display = 'none';
+        btn.classList.remove('activo');
+        graficoVisible = false;
+    }
+
     map.fitBounds(capaZonas.getBounds());
 }
 

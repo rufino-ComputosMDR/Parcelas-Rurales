@@ -1,378 +1,355 @@
-body { 
-    margin: 0; 
-    padding: 0; 
-    font-family: 'Segoe UI', Arial, sans-serif; 
-    background-color: #f4f6f9;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-#map { 
-    height: 100vh; 
-    width: 100%; 
-    background-color: #f8f9fa; 
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #f8fafc;
+}
+
+#map {
+    width: 100%;
+    height: calc(100vh - 60px);
+    margin-top: 60px;
     z-index: 1;
 }
 
-/* LOGO EN EL MAPA */
-#contenedor-logo-mapa {
-    position: absolute;
-    top: 20px;
-    left: 60px;
-    z-index: 1000;
-    pointer-events: none;
+/* MENÚ SUPERIOR */
+#menu-controles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #1e293b;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
 }
 
-#logo-mapa {
-    height: 45px;
-    width: auto;
-    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
+#contenedor-busqueda {
+    display: flex;
+    align-items: center;
 }
 
-/* PANEL LATERAL UNIFICADO (IZQUIERDA) */
-#panel-busqueda-lateral {
+#input-busqueda {
+    width: 250px;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px 0 0 6px;
+    outline: none;
+}
+
+#btn-buscar {
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-left: none;
+    background: #f8fafc;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+}
+
+#input-coordenadas {
+    width: 180px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+}
+
+#menu-controles button:not(#btn-buscar) {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    color: #f8fafc;
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#menu-controles button:not(#btn-buscar):hover {
+    background-color: #475569;
+}
+
+#menu-controles button.activo {
+    background-color: #0284c7 !important;
+    border-color: #0369a1 !important;
+}
+
+#btn-reset {
+    background-color: #ef4444 !important;
+    border-color: #dc2626 !important;
+    margin-left: auto;
+}
+
+/* PANEL LATERAL */
+.panel-lateral {
     position: absolute;
     top: 75px;
-    left: 60px;
+    left: 20px;
     z-index: 1000;
+    width: 330px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    padding: 15px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+}
+
+.cabecera-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.btn-cerrar {
+    font-size: 20px;
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.ficha-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ficha-tabla tr {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ficha-tabla td {
+    padding: 6px 4px;
+}
+
+/* MODAL SEMÁFORO */
+.modal-grafico {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    width: 310px;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+}
+
+.tarjeta-metrica-global {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: 320px;
 }
 
-#contenedor-busqueda, #contenedor-coordenadas {
-    background: white;
-    padding: 4px 6px;
-    border-radius: 6px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    display: flex;
-    gap: 5px;
-    align-items: center;
-}
-
-#contenedor-busqueda input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 13px; width: 190px; }
-#contenedor-busqueda button { background: #2c3e50; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-#contenedor-coordenadas input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; width: 160px; background: #fafafa; }
-#contenedor-coordenadas button { background: #2980b9; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-/* PANEL FIJO DE LEYENDA DEL SEMÁFORO (NUEVO) */
-#panel-leyenda-semaforo {
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    padding: 10px 14px;
-    border: 1px solid #e2e8f0;
-}
-
-#panel-leyenda-semaforo h4 {
-    margin: 0 0 8px 0;
-    font-size: 12px;
-    color: #1e293b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 4px;
-}
-
-.items-leyenda {
+.item-barra-progreso {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
-.item-leyenda {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    color: #475569;
-    font-weight: 500;
-}
-
-.circulo-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-}
-.circulo-color.verde { background-color: #2ecc71; }
-.circulo-color.amarillo { background-color: #f1c40f; }
-.circulo-color.rojo { background-color: #e74c3c; }
-
-/* PANEL DE DATOS CATASTRAL */
-#panel-datos-parcela {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    padding: 12px 14px;
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    animation: slideInLeft 0.25s ease-out;
-}
-
-@keyframes slideInLeft {
-    from { transform: translateX(-15px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.encabezado-panel-datos {
+.info-barra {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #2c3e50;
-    padding-bottom: 6px;
-    margin-bottom: 8px;
+    font-size: 11px;
 }
 
-.encabezado-panel-datos h3 { margin: 0; color: #2c3e50; font-size: 14px; text-transform: uppercase; }
-.btn-cerrar-panel { background: none; border: none; font-size: 18px; font-weight: bold; color: #95a5a6; cursor: pointer; }
-.btn-cerrar-panel:hover { color: #c0392b; }
-
-.ficha-tabla { width: 100%; border-collapse: collapse; }
-.ficha-tabla tr { border-bottom: 1px solid #f2f2f2; }
-.ficha-tabla td { padding: 6px 4px; vertical-align: top; line-height: 1.3; }
-
-/* BOTONES FLOTANTES DERECHA */
-.botones-controles-derechos {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.botones-controles-derechos button {
-    padding: 12px 20px;
-    background: white;
-    color: #2c3e50;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: all 0.2s;
-    border: 2px solid #2c3e50;
-}
-
-#btn-reset { display: none; }
-#btn-reset:hover { background: #2c3e50; color: white; }
-
-#btn-referencias { border-color: #00b4d8; color: #00b4d8; }
-#btn-referencias.activo { background: #00b4d8; color: white; }
-
-#btn-grafico { border-color: #8e44ad; color: #8e44ad; }
-#btn-grafico:hover, #btn-grafico.activo { background: #8e44ad; color: white; }
-
-#btn-top-deudores { border-color: #d35400; color: #d35400; }
-#btn-top-deudores:hover, #btn-top-deudores.activo { background: #d35400; color: white; }
-
-.etiqueta-zona { background: rgba(255, 255, 255, 0.9); border: 1px solid #333; padding: 3px 8px; font-weight: bold; color: #333; border-radius: 4px; }
-.etiqueta-parcela { background: transparent; border: none; box-shadow: none; font-size: 10px; color: #d35400; font-weight: bold; text-shadow: 1px 1px 2px white; }
-
-.parcela-titilando { animation: parpadeoLote 1.2s infinite ease-in-out; }
-@keyframes parpadeoLote { 0% { fill-opacity: 0.8; stroke-width: 3px; } 50% { fill-opacity: 0.1; stroke-width: 1px; } 100% { fill-opacity: 0.8; stroke-width: 3px; } }
-
-/* MODAL: GRÁFICO DE BARRAS */
-#modal-grafico-barras {
-    position: absolute;
-    bottom: 30px;
-    right: 20px;
-    z-index: 1000;
-    background: white;
-    width: 290px;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: 1px solid #e2e8f0;
+.linea-progreso-fondo {
+    background: #e2e8f0;
+    height: 8px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
-.encabezado-grafico {
-    background: #2c3e50;
-    color: white;
-    padding: 10px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.encabezado-grafico h4 { margin: 0; font-size: 13px; font-weight: 600; text-transform: uppercase; }
-.btn-cerrar-grafico { background: none; border: none; color: #bdc3c7; font-size: 20px; cursor: pointer; font-weight: bold; }
-
-.cuerpo-grafico { padding: 16px; background: #ffffff; }
-.tarjeta-metrica-global { display: flex; flex-direction: column; gap: 12px; }
-.item-barra-progreso { display: flex; flex-direction: column; gap: 4px; }
-.info-barra { display: flex; justify-content: space-between; font-size: 12px; color: #4a5568; font-weight: 500; }
-.linea-progreso-fondo { background: #edf2f7; height: 14px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); }
-.linea-progreso-relleno { height: 100%; border-radius: 4px; transition: width 0.5s ease-in-out; }
+.linea-progreso-relleno { height: 100%; }
 .linea-progreso-relleno.verde { background: #2ecc71; }
 .linea-progreso-relleno.amarillo { background: #f1c40f; }
 .linea-progreso-relleno.rojo { background: #e74c3c; }
 
 
-/* ====================================================
-   ESTRUCTURA DE PANTALLA COMPLETA: REPORTE DE DEUDA
-   ==================================================== */
-#pantalla-completa-top {
+/* ==========================================================================
+   REPORTE VISTA COMPLETA (TOP DEUDORES) - DISEÑO OPTIMIZADO
+   ========================================================================== */
+.vista-completa {
     position: fixed;
-    top: 0;
+    top: 60px;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #ffffff;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    padding: 24px;
-    box-sizing: border-box;
+    width: 100%;
+    height: calc(100vh - 60px);
+    background-color: #f8fafc; /* Fondo gris tenue institucional */
+    z-index: 1999;
+    padding: 40px 60px;
     overflow-y: auto;
 }
 
-.encabezado-informe-pantalla {
+.cabecera-reporte {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px solid #d35400;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
 }
 
-.encabezado-informe-pantalla h2 {
-    margin: 0;
-    font-size: 20px;
+.cabecera-reporte h2 {
+    font-size: 24px;
     color: #0f172a;
     font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
-.acciones-informe {
-    display: flex;
-    gap: 12px;
-}
-
-.btn-accion-print {
-    background: #1e3a8a;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    font-weight: bold;
-    border-radius: 6px;
+.btn-cerrar-pantalla {
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 13px;
-}
-.btn-accion-print:hover { background: #172554; }
-
-.btn-accion-cerrar {
-    background: #475569;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.2s;
 }
 
-/* Tabla Maestra Dinámica */
-#contenedor-tabla-grande-top {
-    flex-grow: 1;
-    margin-bottom: 30px;
+.btn-cerrar-pantalla:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b;
 }
 
+/* Rediseño de la estructura de la Tabla */
 .gran-tabla-reporte {
     width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
+    border-collapse: separate; 
+    border-spacing: 0;
+    background-color: #ffffff;
+    border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0,0,0,0.05);
 }
 
-.gran-tabla-reporte thead th {
-    background: #1e293b;
-    color: #f8fafc;
+.gran-tabla-reporte th {
+    background-color: #f1f5f9;
+    padding: 16px 20px;
+    border-bottom: 2px solid #e2e8f0;
+    color: #475569;
     font-weight: 600;
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 14px;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
-
-.gran-tabla-reporte tbody tr {
-    border-bottom: 1px solid #e2e8f0;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-.gran-tabla-reporte tbody tr:hover { background: #f8fafc; }
 
 .gran-tabla-reporte td {
-    padding: 14px 16px;
-    font-size: 13px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
     color: #334155;
+    font-size: 13.5px;
     vertical-align: middle;
+    transition: background-color 0.15s ease;
 }
 
+/* Efecto hover elegante al pasar el mouse por las filas */
+.gran-tabla-reporte tbody tr { 
+    cursor: pointer; 
+}
+
+.gran-tabla-reporte tbody tr:hover td { 
+    background-color: #f8fafc; 
+}
+
+/* El código TGI ahora parece un tag tecnológico limpio */
 .celda-tgi-resaltada {
-    font-family: monospace;
-    font-weight: bold;
-    background: #f1f5f9;
-    padding: 5px 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 5px;
-    color: #0f172a;
+    background-color: #f0fdf4;
+    color: #166534;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
     font-size: 13px;
-}
-
-.badge-periodos {
-    font-size: 11px;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 4px;
-    color: white;
+    border: 1px solid #dcfce7;
     display: inline-block;
 }
-.badge-rojo { background: #ef4444; }
 
-.encabezado-impresion-formal { display: none; }
+/* Badge del estado de deuda modificado a colores planos institucionales */
+.badge-periodos {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-rojo { 
+    background-color: #fee2e2; 
+    color: #991b1b; 
+    border: 1px solid #fca5a5;
+}
+/* ========================================================================== */
 
 
-/* ====================================================
-   REGLAS DE IMPRESIÓN LIMPIA (PRINT CSS)
-   ==================================================== */
-@media print {
-    .no-imprimir, #map, .botones-controles-derechos, #panel-busqueda-lateral, #contenedor-logo-mapa, .encabezado-informe-pantalla {
-        display: none !important;
-    }
+/* LABELS DE LEAFLET */
+.etiqueta-zona {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+}
 
-    body { background: #ffffff; color: #000000; }
+.etiqueta-parcela {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #334155 !important;
+    font-weight: bold !important;
+    font-size: 9px !important;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+}
 
-    #pantalla-completa-top {
-        position: relative;
-        width: 100%;
-        height: auto;
-        padding: 0;
-        overflow: visible;
-    }
+.etiqueta-medida-segmento {
+    background: #2980b9 !important;
+    color: white !important;
+    font-weight: bold !important;
+    padding: 2px 5px !important;
+    border-radius: 3px !important;
+}
 
-    .encabezado-impresion-formal {
-        display: flex !important;
-        align-items: center;
-        gap: 20px;
-        border-bottom: 2px solid #000000;
-        padding-bottom: 12px;
-        margin-bottom: 25px;
-    }
+.texto-referencia-mapa div {
+    background: white;
+    border: 1px solid #64748b;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translate(-50%, -120%);
+}
 
-    .encabezado-impresion-formal img { height: 50px; width: auto; }
-    .encabezado-impresion-formal h2 { margin: 0; font-size: 16px; font-weight: bold; }
-    .encabezado-impresion-formal p { margin: 4px 0 0 0; font-size: 11px; color: #333; }
+/* ANIMACIÓN */
+.parcela-titilando {
+    animation: parpadeoLote 1.2s infinite alternate ease-in-out;
+}
 
-    .gran-tabla-reporte { box-shadow: none; border: 1px solid #000000; }
-    .gran-tabla-reporte thead th { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 2px solid #000000; }
-    .gran-tabla-reporte tbody tr { page-break-inside: avoid; border-bottom: 1px solid #000000; }
-    .gran-tabla-reporte td { padding: 10px 12px; color: #000000; }
-    
-    .celda-tgi-resaltada { border: none; padding: 0; background: transparent; font-family: inherit; font-weight: bold; }
-    .badge-periodos { color: #000000 !important; background: transparent !important; padding: 0; font-weight: bold; }
+@keyframes parpadeoLote {
+    0% { fill-opacity: 0.25; stroke-width: 2px; stroke: #ffffff; }
+    100% { fill-opacity: 0.85; stroke-width: 5px; stroke: #f59e0b; }
 }

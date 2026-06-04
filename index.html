@@ -3,88 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catastro Rural - Módulo de Auditoría</title>
-    
+    <title>Auditoría Catastral Rural</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=15.0">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <div id="contenedor-logo-mapa" class="no-imprimir">
-        <img src="logo.png" alt="Logo Institucional" id="logo-mapa">
-    </div>
-
-    <div id="panel-busqueda-lateral" class="no-imprimir">
+    <div id="menu-controles">
         <div id="contenedor-busqueda">
             <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
             <datalist id="coincidencias"></datalist>
             <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
         </div>
-
-        <div id="contenedor-coordenadas">
-            <input type="text" id="input-coordenadas" placeholder="Ej: -34.15, -62.6...">
-            <button id="btn-ir-coordenadas" onclick="buscarPorCoordenadas()">📍 Ir</button>
-        </div>
-
-        <div id="panel-leyenda-semaforo">
-            <h4>🚦 Estado Fiscal de Parcelas</h4>
-            <div class="items-leyenda">
-                <div class="item-leyenda"><span class="circulo-color verde"></span> Al Día (0-1 períodos)</div>
-                <div class="item-leyenda"><span class="circulo-color amarillo"></span> Mediana (2-3 períodos)</div>
-                <div class="item-leyenda"><span class="circulo-color rojo"></span> Crítica (4 o más períodos)</div>
-            </div>
-        </div>
-
-        <div id="panel-datos-parcela" style="display: none;">
-            <div class="encabezado-panel-datos">
-                <h3>📋 Ficha Parcela</h3>
-                <button class="btn-cerrar-panel" onclick="cerrarPanelDatos()">×</button>
-            </div>
-            <div id="contenido-tabla-datos">
-                </div>
-        </div>
+        <input type="text" id="input-coordenadas" placeholder="Lat, Lng o DMS...">
+        <button onclick="buscarPorCoordenadas()">📍 Ir</button>
+        <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Semáforo</button>
+        <button id="btn-top-deudores" onclick="toggleTopDeudores()">🏆 Top Deudores</button>
+        <button id="btn-referencias" onclick="toggleReferencias()">📍 Referencias</button>
+        <button id="btn-reset" style="display:none;" onclick="volverAlMapa()">🔄 Volver</button>
     </div>
 
-    <div class="botones-controles-derechos no-imprimir">
-        <button id="btn-reset" onclick="volverAlMapa()">⬅ Volver a Vista General</button>
-        <button id="btn-referencias" onclick="toggleReferencias()">📍 Mostrar Referencias</button>
-        <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Gráfico Semáforo</button>
-        <button id="btn-top-deudores" onclick="toggleTopDeudores()">🔥 Deudores Top 50</button>
+    <div id="map"></div>
+
+    <div id="panel-datos-parcela" class="panel-lateral" style="display:none;">
+        <div class="cabecera-panel">
+            <h3>Detalle de Parcela</h3>
+            <span class="btn-cerrar" onclick="cerrarPanelDatos()">&times;</span>
+        </div>
+        <div id="contenido-tabla-datos"></div>
     </div>
 
-    <div id="modal-grafico-barras" class="no-imprimir" style="display: none;">
-        <div class="encabezado-grafico">
-            <h4>📊 Semáforo Fiscal</h4>
-            <button class="btn-cerrar-grafico" onclick="toggleGraficoSemaforo()">×</button>
-        </div>
-        <div id="contenedor-barras-dinamicas" class="cuerpo-grafico">
-            </div>
+    <div id="modal-grafico-barras" class="modal-grafico" style="display:none;">
+        <div id="contenedor-barras-dinamicas"></div>
     </div>
 
-    <div id="pantalla-completa-top" style="display: none;">
-        <div class="encabezado-informe-pantalla no-imprimir">
-            <h2>🔥 Detalle contribuyentes Rurales con deuda (6 o más Períodos)</h2>
-            <div class="acciones-informe">
-                <button class="btn-accion-print" onclick="window.print()">🖨️ Imprimir Reporte</button>
-                <button class="btn-accion-cerrar" onclick="toggleTopDeudores()">❌ Cerrar Vista</button>
-            </div>
+    <div id="pantalla-completa-top" class="vista-completa" style="display:none;">
+        <div class="cabecera-reporte">
+            <h2>Grandes Deudores: Cuentas con Mayor Deuda Fiscal Acumulada</h2>
+            <button class="btn-cerrar-pantalla" onclick="toggleTopDeudores()">❌ Cerrar Reporte</button>
         </div>
-        
-        <div class="encabezado-impresion-formal">
-            <img src="logo.png" alt="Logo">
-            <div>
-                <h2>INFORME DE MOROSIDAD Y AUDITORÍA FISCAL RURAL</h2>
-                <p>Criterio de Selección: Cuentas de TGI con Deuda Activa Unificada de 6 o más Períodos</p>
-            </div>
-        </div>
-
-        <div id="contenedor-tabla-grande-top">
-            </div>
+        <div id="contenedor-tabla-grande-top"></div>
     </div>
-
-    <div id="map" class="no-imprimir"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js?v=15.0"></script>
+    <script src="script.js"></script>
 </body>
 </html>
