@@ -361,18 +361,17 @@ body, html {
 /* ==========================================================================
    ADAPTACIÓN EXCLUSIVA PARA CELULARES (CORRECCIÓN VERTICAL Y HORIZONTAL)
    ========================================================================== */
-   @media screen and (max-width: 900px) {
-    /* Forzamos a la pantalla a estar por encima de absolutamente todo y permitir scroll */
+@media screen and (max-width: 900px) {
     .vista-completa {
         position: fixed !important;
-        top: 0 !important; /* Toma toda la pantalla en el celular */
+        top: 0 !important; 
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
         background-color: #f1f5f9 !important; 
-        z-index: 99999 !important; /* Un número altísimo para ganarle al mapa y menú */
+        z-index: 99999 !important; 
         padding: 15px 10px !important;
-        overflow-y: auto !important; /* Scroll vertical asegurado */
+        overflow-y: auto !important; 
         display: block !important;
     }
 
@@ -410,7 +409,7 @@ body, html {
         }
 
         .gran-tabla-reporte thead {
-            display: none !important; /* Oculta títulos para evitar que se pisen */
+            display: none !important; 
         }
 
         .gran-tabla-reporte tbody {
@@ -438,7 +437,6 @@ body, html {
             font-size: 12.5px !important;
         }
 
-        /* Orden de datos en la tarjeta vertical */
         .gran-tabla-reporte td:nth-child(1) { order: 1 !important; }
         .gran-tabla-reporte td:nth-child(2) { 
             order: 2 !important; 
@@ -458,27 +456,25 @@ body, html {
     }
 
     /* ----------------------------------------------------------------------
-       SI EL CELULAR SE GIRA EN HORIZONTAL (Gana ancho: Tabla Deslizable)
+       SI EL CELULAR SE GIRA EN HORIZONTAL (Tabla Deslizable Prolija)
        ---------------------------------------------------------------------- */
     @media (min-width: 551px) {
         .gran-tabla-reporte {
             display: table !important;
             width: 100% !important;
-            min-width: 650px !important; /* Forzamos ancho mínimo para que no colapse */
+            min-width: 650px !important; 
             background-color: #ffffff !important;
         }
         
-        /* En horizontal volvemos a mostrar la estructura de tabla normalizada */
         .gran-tabla-reporte thead { display: table-header-group !important; }
         .gran-tabla-reporte tbody tr { display: table-row !important; }
         .gran-tabla-reporte td { 
             display: table-cell !important; 
-            white-space: nowrap !important; /* Clave: impide que los textos se pisen en renglones */
+            white-space: nowrap !important; 
             padding: 10px 8px !important;
             font-size: 12px !important;
         }
         
-        /* Contenedor con scroll horizontal para deslizar con el dedo de izq a der */
         #contenedor-tabla-grande-top {
             width: 100% !important;
             overflow-x: auto !important;
