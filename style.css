@@ -379,23 +379,40 @@ body, html {
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Achicamos levemente la tipografía en mobile para ganar espacio */
+    /* ==========================================================================
+   ADAPTACIÓN EXCLUSIVA PARA CELULARES (PANTALLAS CHICAS / VERTICAL)
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+    /* Forzamos a toda la pantalla del reporte a permitir scroll si es necesario */
+    .vista-completa {
+        padding: 20px 12px !important;
+        display: block !important;
+        width: 100% !important;
+        overflow-x: auto !important; /* Habilita el arrastre lateral con el dedo */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cabecera-reporte {
+        flex-direction: column !important; /* Pone el botón abajo del título para ganar espacio */
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .cabecera-reporte h2 {
+        font-size: 15px !important;
+    }
+
+    /* Rediseño de la tabla para que actúe como un bloque deslizable */
+    .gran-tabla-reporte {
+        display: table !important;
+        width: 100% !important;
+        min-width: 600px !important; /* Forzamos un ancho mínimo interno para que NUNCA se cruce nada */
+    }
+
     .gran-tabla-reporte th, 
     .gran-tabla-reporte td {
-        padding: 12px 10px;
-        font-size: 11.5px;
-        white-space: nowrap; /* Evita que los nombres o números se partan en dos renglones deformando la fila */
-    }
-
-    /* El identificador TGI un poco más compacto en celular */
-    .celda-tgi-resaltada {
-        padding: 4px 6px;
-        font-size: 11px;
-    }
-
-    /* El badge de períodos más compacto */
-    .badge-periodos {
-        padding: 4px 8px;
-        font-size: 10.5px;
+        padding: 10px 8px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important; /* Obliga a que los datos se queden en una sola línea prolija */
     }
 }
