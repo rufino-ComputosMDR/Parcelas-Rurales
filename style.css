@@ -359,102 +359,131 @@ body, html {
 
 
 /* ==========================================================================
-   ADAPTACIÓN EXCLUSIVA PARA CELULARES (SISTEMA DE TARJETAS VERTICALES)
+   ADAPTACIÓN EXCLUSIVA PARA CELULARES (CORRECCIÓN VERTICAL Y HORIZONTAL)
    ========================================================================== */
-@media screen and (max-width: 768px) {
+   @media screen and (max-width: 900px) {
+    /* Forzamos a la pantalla a estar por encima de absolutamente todo y permitir scroll */
     .vista-completa {
-        padding: 15px 10px !important;
+        position: fixed !important;
+        top: 0 !important; /* Toma toda la pantalla en el celular */
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
         background-color: #f1f5f9 !important; 
+        z-index: 99999 !important; /* Un número altísimo para ganarle al mapa y menú */
+        padding: 15px 10px !important;
+        overflow-y: auto !important; /* Scroll vertical asegurado */
+        display: block !important;
     }
 
     .cabecera-reporte {
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 12px !important;
+        gap: 10px !important;
         margin-bottom: 15px !important;
-        padding-bottom: 12px !important;
+        padding-bottom: 10px !important;
     }
 
     .cabecera-reporte h2 {
-        font-size: 15px !important;
+        font-size: 14px !important;
         text-align: center !important;
+        line-height: 1.3 !important;
     }
 
     .btn-cerrar-pantalla {
         width: 100% !important;
         text-align: center !important;
-        padding: 12px !important;
+        padding: 10px !important;
+        font-size: 12px !important;
     }
 
-    /* Transformamos la tabla rígida en bloques flexibles apilados */
-    .gran-tabla-reporte {
-        display: block !important;
-        width: 100% !important;
-        background: transparent !important; 
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        border: none !important;
+    /* ----------------------------------------------------------------------
+       SI EL CELULAR ESTÁ EN VERTICAL (Pantalla muy angosta: Modo Tarjetas)
+       ---------------------------------------------------------------------- */
+    @media (max-width: 550px) {
+        .gran-tabla-reporte {
+            display: block !important;
+            width: 100% !important;
+            background: transparent !important; 
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        .gran-tabla-reporte thead {
+            display: none !important; /* Oculta títulos para evitar que se pisen */
+        }
+
+        .gran-tabla-reporte tbody {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .gran-tabla-reporte tbody tr {
+            display: flex !important;
+            flex-direction: column !important; 
+            background-color: #ffffff !important;
+            margin-bottom: 12px !important;
+            padding: 12px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+            gap: 6px !important;
+        }
+
+        .gran-tabla-reporte td {
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
+            border: none !important;
+            text-align: left !important; 
+            font-size: 12.5px !important;
+        }
+
+        /* Orden de datos en la tarjeta vertical */
+        .gran-tabla-reporte td:nth-child(1) { order: 1 !important; }
+        .gran-tabla-reporte td:nth-child(2) { 
+            order: 2 !important; 
+            font-weight: 700 !important;
+            color: #0f172a !important;
+        }
+        .gran-tabla-reporte td:nth-child(3) { order: 3 !important; }
+        .gran-tabla-reporte td:nth-child(4) { 
+            order: 4 !important; 
+            text-align: right !important; 
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            color: #b91c1c !important; 
+            border-top: 1px dashed #e2e8f0 !important;
+            padding-top: 6px !important;
+        }
     }
 
-    /* Ocultamos las cabeceras de texto horizontales en el celular */
-    .gran-tabla-reporte thead {
-        display: none !important;
-    }
-
-    .gran-tabla-reporte tbody {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    /* Cada fila se convierte en una Tarjeta Separada */
-    .gran-tabla-reporte tbody tr {
-        display: flex !important;
-        flex-direction: column !important; 
-        background-color: #ffffff !important;
-        margin-bottom: 12px !important;
-        padding: 14px !important;
-        border-radius: 10px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.04) !important;
-        border: none !important;
-        gap: 8px !important;
-    }
-
-    /* Cada celda pasa a ser un renglón interno con lectura natural a la izquierda */
-    .gran-tabla-reporte td {
-        display: block !important;
-        width: 100% !important;
-        padding: 0 !important;
-        border: none !important;
-        text-align: left !important; 
-        font-size: 13px !important;
-    }
-
-    /* Estructuración interna de datos en la tarjeta mobile */
-    .gran-tabla-reporte td:nth-child(1) {
-        order: 1 !important; /* TGI Primero */
-    }
-    
-    .gran-tabla-reporte td:nth-child(2) {
-        order: 2 !important; /* Nombre Segundo */
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        font-size: 14px !important;
-        margin-top: 2px !important;
-    }
-
-    .gran-tabla-reporte td:nth-child(3) {
-        order: 3 !important; /* Períodos de Deuda Tercero */
-        margin-top: 4px !important;
-    }
-
-    .gran-tabla-reporte td:nth-child(4) {
-        order: 4 !important; /* Monto Total al final, destacado y grande */
-        text-align: right !important; 
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        color: #b91c1c !important; 
-        border-top: 1px dashed #e2e8f0 !important;
-        padding-top: 8px !important;
-        margin-top: 4px !important;
+    /* ----------------------------------------------------------------------
+       SI EL CELULAR SE GIRA EN HORIZONTAL (Gana ancho: Tabla Deslizable)
+       ---------------------------------------------------------------------- */
+    @media (min-width: 551px) {
+        .gran-tabla-reporte {
+            display: table !important;
+            width: 100% !important;
+            min-width: 650px !important; /* Forzamos ancho mínimo para que no colapse */
+            background-color: #ffffff !important;
+        }
+        
+        /* En horizontal volvemos a mostrar la estructura de tabla normalizada */
+        .gran-tabla-reporte thead { display: table-header-group !important; }
+        .gran-tabla-reporte tbody tr { display: table-row !important; }
+        .gran-tabla-reporte td { 
+            display: table-cell !important; 
+            white-space: nowrap !important; /* Clave: impide que los textos se pisen en renglones */
+            padding: 10px 8px !important;
+            font-size: 12px !important;
+        }
+        
+        /* Contenedor con scroll horizontal para deslizar con el dedo de izq a der */
+        #contenedor-tabla-grande-top {
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px;
+        }
     }
 }
