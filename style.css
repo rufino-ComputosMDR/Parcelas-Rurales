@@ -19,9 +19,7 @@ body, html {
     z-index: 1;
 }
 
-/* ==========================================================================
-   MENÚ SUPERIOR DE CONTROLES
-   ========================================================================== */
+/* MENÚ SUPERIOR */
 #menu-controles {
     position: fixed;
     top: 0;
@@ -98,9 +96,7 @@ body, html {
     margin-left: auto;
 }
 
-/* ==========================================================================
-   PANEL LATERAL (FICHA CATASTRAL)
-   ========================================================================== */
+/* PANEL LATERAL */
 .panel-lateral {
     position: absolute;
     top: 75px;
@@ -144,9 +140,7 @@ body, html {
     padding: 6px 4px;
 }
 
-/* ==========================================================================
-   MODAL FLOTANTE (GRÁFICO SEMÁFORO)
-   ========================================================================== */
+/* MODAL SEMÁFORO */
 .modal-grafico {
     position: absolute;
     bottom: 20px;
@@ -192,7 +186,7 @@ body, html {
 
 
 /* ==========================================================================
-   PANTALLA COMPLETA: REPORTE DE DEUDORES (ESCRITORIO)
+   REPORTE VISTA COMPLETA (TOP DEUDORES) - DISEÑO OPTIMIZADO
    ========================================================================== */
 .vista-completa {
     position: fixed;
@@ -304,11 +298,10 @@ body, html {
     color: #991b1b; 
     border: 1px solid #fca5a5;
 }
+/* ========================================================================== */
 
 
-/* ==========================================================================
-   ETIQUETAS Y CAPAS DE LEAFLET
-   ========================================================================== */
+/* LABELS DE LEAFLET */
 .etiqueta-zona {
     background: rgba(15, 23, 42, 0.85) !important;
     border: none !important;
@@ -347,7 +340,7 @@ body, html {
     transform: translate(-50%, -120%);
 }
 
-/* ANIMACIONES */
+/* ANIMACIÓN */
 .parcela-titilando {
     animation: parpadeoLote 1.2s infinite alternate ease-in-out;
 }
@@ -355,131 +348,4 @@ body, html {
 @keyframes parpadeoLote {
     0% { fill-opacity: 0.25; stroke-width: 2px; stroke: #ffffff; }
     100% { fill-opacity: 0.85; stroke-width: 5px; stroke: #f59e0b; }
-}
-
-
-/* ==========================================================================
-   ADAPTACIÓN EXCLUSIVA PARA CELULARES (CORRECCIÓN VERTICAL Y HORIZONTAL)
-   ========================================================================== */
-@media screen and (max-width: 900px) {
-    .vista-completa {
-        position: fixed !important;
-        top: 0 !important; 
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        background-color: #f1f5f9 !important; 
-        z-index: 99999 !important; 
-        padding: 15px 10px !important;
-        overflow-y: auto !important; 
-        display: block !important;
-    }
-
-    .cabecera-reporte {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 10px !important;
-        margin-bottom: 15px !important;
-        padding-bottom: 10px !important;
-    }
-
-    .cabecera-reporte h2 {
-        font-size: 14px !important;
-        text-align: center !important;
-        line-height: 1.3 !important;
-    }
-
-    .btn-cerrar-pantalla {
-        width: 100% !important;
-        text-align: center !important;
-        padding: 10px !important;
-        font-size: 12px !important;
-    }
-
-    /* ----------------------------------------------------------------------
-       SI EL CELULAR ESTÁ EN VERTICAL (Pantalla muy angosta: Modo Tarjetas)
-       ---------------------------------------------------------------------- */
-    @media (max-width: 550px) {
-        .gran-tabla-reporte {
-            display: block !important;
-            width: 100% !important;
-            background: transparent !important; 
-            box-shadow: none !important;
-            border: none !important;
-        }
-
-        .gran-tabla-reporte thead {
-            display: none !important; 
-        }
-
-        .gran-tabla-reporte tbody {
-            display: block !important;
-            width: 100% !important;
-        }
-
-        .gran-tabla-reporte tbody tr {
-            display: flex !important;
-            flex-direction: column !important; 
-            background-color: #ffffff !important;
-            margin-bottom: 12px !important;
-            padding: 12px !important;
-            border-radius: 8px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-            gap: 6px !important;
-        }
-
-        .gran-tabla-reporte td {
-            display: block !important;
-            width: 100% !important;
-            padding: 0 !important;
-            border: none !important;
-            text-align: left !important; 
-            font-size: 12.5px !important;
-        }
-
-        .gran-tabla-reporte td:nth-child(1) { order: 1 !important; }
-        .gran-tabla-reporte td:nth-child(2) { 
-            order: 2 !important; 
-            font-weight: 700 !important;
-            color: #0f172a !important;
-        }
-        .gran-tabla-reporte td:nth-child(3) { order: 3 !important; }
-        .gran-tabla-reporte td:nth-child(4) { 
-            order: 4 !important; 
-            text-align: right !important; 
-            font-size: 15px !important;
-            font-weight: 800 !important;
-            color: #b91c1c !important; 
-            border-top: 1px dashed #e2e8f0 !important;
-            padding-top: 6px !important;
-        }
-    }
-
-    /* ----------------------------------------------------------------------
-       SI EL CELULAR SE GIRA EN HORIZONTAL (Tabla Deslizable Prolija)
-       ---------------------------------------------------------------------- */
-    @media (min-width: 551px) {
-        .gran-tabla-reporte {
-            display: table !important;
-            width: 100% !important;
-            min-width: 650px !important; 
-            background-color: #ffffff !important;
-        }
-        
-        .gran-tabla-reporte thead { display: table-header-group !important; }
-        .gran-tabla-reporte tbody tr { display: table-row !important; }
-        .gran-tabla-reporte td { 
-            display: table-cell !important; 
-            white-space: nowrap !important; 
-            padding: 10px 8px !important;
-            font-size: 12px !important;
-        }
-        
-        #contenedor-tabla-grande-top {
-            width: 100% !important;
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 10px;
-        }
-    }
 }
