@@ -368,15 +368,15 @@ body, html {
     
     /* 1. CORRECCIÓN DEL CUERPO GENERAL */
     body, html {
-        overflow-x: hidden !important; /* Congela el ancho de la pantalla */
+        overflow-x: hidden !important; 
         position: relative;
     }
 
     /* 2. ACOMODAR MENÚ SUPERIOR (Apilado vertical de inputs y botones) */
     #menu-controles {
-        position: relative !important; /* El menú ya no flota, deja espacio al mapa */
+        position: relative !important; 
         height: auto !important; 
-        flex-direction: column !important; /* Coloca elementos uno abajo de otro */
+        flex-direction: column !important; 
         align-items: stretch !important;
         padding: 12px !important;
         gap: 10px !important;
@@ -386,13 +386,18 @@ body, html {
         width: 100% !important;
     }
 
+    /* TEXTO MÁS CHICO Y EN NEGRITA DENTRO DEL BUSCADOR */
     #input-busqueda {
         flex-grow: 1 !important;
         width: auto !important;
+        font-size: 11px !important; /* Texto más chico */
+        font-weight: 700 !important; /* Texto en negrita */
     }
 
     #input-coordenadas {
         width: 100% !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
     }
 
     #btn-reset {
@@ -404,7 +409,7 @@ body, html {
     /* 3. REAJUSTE DEL MAPA */
     #map {
         width: 100% !important;
-        height: 60vh !important; /* Proporción ideal y cómoda para pantallas táctiles */
+        height: 60vh !important; 
         margin-top: 0 !important;
     }
 
@@ -419,16 +424,25 @@ body, html {
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
 
+    /* CORRECCIÓN SEMÁFORO FLOTANTE: Reestablecido fijo abajo a la derecha, más chico */
     .modal-grafico {
-        position: relative !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        margin-top: 15px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        position: fixed !important;
+        bottom: 15px !important;
+        right: 15px !important;
+        top: auto !important;
+        left: auto !important;
+        width: 240px !important; /* Más angosto para que entre cómodo en vertical */
+        padding: 10px !important;
+        z-index: 1500 !important; /* Flota sobre el mapa de Leaflet */
+        background: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+    }
+    
+    .modal-grafico .info-barra {
+        font-size: 9px !important; /* Textos de métricas levemente más chicos en móvil */
     }
 
-    /* 5. REPORTE DE DEUDORES: MODO TARJETAS FULL SCREEN OVERLAY (CORREGIDO) */
+    /* 5. REPORTE DE DEUDORES: MODO TARJETAS FULL SCREEN OVERLAY */
     .vista-completa {
         position: fixed !important;
         top: 0 !important;
@@ -436,11 +450,9 @@ body, html {
         width: 100vw !important;
         height: 100vh !important;
         padding: 15px 12px !important;
-        z-index: 99999 !important; /* Domina por encima de cualquier otra capa */
+        z-index: 99999 !important; 
         background-color: #f1f5f9 !important;
         overflow-y: auto !important;
-        /* Se eliminó el "display: block !important" para permitirle a JavaScript 
-           manejar correctamente los estados oculto/visible al cargar la página */
     }
 
     .cabecera-reporte {
@@ -473,7 +485,7 @@ body, html {
     }
 
     .gran-tabla-reporte thead {
-        display: none !important; /* Apaga los títulos de tabla horizontales */
+        display: none !important; 
     }
 
     .gran-tabla-reporte tbody {
