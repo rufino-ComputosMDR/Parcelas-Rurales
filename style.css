@@ -19,32 +19,35 @@ body, html {
     width: 100%;
     height: calc(100vh - 60px);
     margin-top: 60px;
-    z-index: 1; /* El mapa se queda al fondo */
+    z-index: 1 !important; /* El mapa se queda obligatoriamente al fondo */
 }
 
 /* ==========================================================================
-   MENÚ SUPERIOR DE CONTROLES (CORREGIDO PARA PC)
+   MENÚ SUPERIOR DE CONTROLES (FIJADO CON ULTRA-PRIORIDAD PARA FIREFOX)
    ========================================================================== */
 #menu-controles {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     width: 100%;
     height: 60px;
     background-color: #1e293b;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    z-index: 5000 !important; /* Forzamos a que esté por encima de TODO en la PC */
     display: flex;
     align-items: center;
     padding: 0 20px;
     gap: 12px;
+    /* Solución Firefox: Forzar un contexto de apilamiento absoluto sobre Leaflet */
+    z-index: 999999 !important; 
+    pointer-events: auto !important;
 }
 
 #contenedor-busqueda {
-    position: relative !important; /* Clave para que la lista desplegable flote bien */
+    position: relative !important; 
     display: flex;
     align-items: center;
-    z-index: 5100 !important; /* Más prioridad interna */
+    z-index: 999999 !important;
+    pointer-events: auto !important;
 }
 
 #input-busqueda {
@@ -55,8 +58,9 @@ body, html {
     border: 1px solid #cbd5e1;
     border-radius: 6px 0 0 6px;
     outline: none;
-    position: relative;
-    z-index: 5200 !important; /* Garantiza que reciba el clic del mouse */
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
 }
 
 #btn-buscar {
@@ -67,8 +71,9 @@ body, html {
     background: #f8fafc;
     border-radius: 0 6px 6px 0;
     cursor: pointer;
-    position: relative;
-    z-index: 5200 !important;
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
 }
 
 #input-coordenadas {
@@ -78,8 +83,9 @@ body, html {
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     outline: none;
-    position: relative;
-    z-index: 5200 !important;
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
 }
 
 #menu-controles button:not(#btn-buscar) {
@@ -92,8 +98,9 @@ body, html {
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.2s;
-    position: relative;
-    z-index: 5200 !important;
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
 }
 
 #menu-controles button:not(#btn-buscar):hover {
@@ -111,9 +118,9 @@ body, html {
     margin-left: auto;
 }
 
-/* Forzar que la lista de autocompletado en PC flote por encima del mapa siempre */
+/* Forzar que las sugerencias floten por encima de todo en cualquier navegador */
 .ui-autocomplete {
-    z-index: 6000 !important; 
+    z-index: 9999999 !important; 
 }
 
 /* ==========================================================================
@@ -397,13 +404,13 @@ body, html {
         padding: 12px !important;
         gap: 10px !important;
         box-sizing: border-box !important;
-        z-index: 2000 !important; /* En celular vuelve a su flujo normal */
+        z-index: 99999 !important; 
     }
 
     #contenedor-busqueda {
         width: 100% !important;
         box-sizing: border-box !important;
-        z-index: 2100 !important;
+        z-index: 99999 !important;
     }
 
     #input-busqueda {
@@ -411,7 +418,7 @@ body, html {
         width: auto !important;
         font-size: 14px !important; 
         font-weight: normal !important;
-        z-index: 2200 !important;
+        z-index: 99999 !important;
     }
 
     /* ACHICAR RESULTADOS EN MÓVIL */
@@ -424,7 +431,7 @@ body, html {
         font-size: 11px !important; 
         font-weight: 700 !important; 
         max-width: 90vw !important;
-        z-index: 999999 !important; /* Asegura prioridad sobre el mapa móvil */
+        z-index: 9999999 !important; 
     }
 
     .ui-menu-item, 
@@ -439,14 +446,14 @@ body, html {
     #input-coordenadas {
         width: 100% !important;
         font-size: 14px !important;
-        z-index: 2200 !important;
+        z-index: 99999 !important;
     }
 
     #btn-reset {
         margin-left: 0 !important;
         width: 100% !important;
         text-align: center !important;
-        z-index: 2200 !important;
+        z-index: 99999 !important;
     }
 
     #map {
