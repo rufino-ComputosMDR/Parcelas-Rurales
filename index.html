@@ -10,17 +10,26 @@
 <body>
 
     <div id="menu-controles">
-        <div id="contenedor-busqueda">
-            <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
-            <datalist id="coincidencias"></datalist>
-            <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
+        <div class="cabecera-menu-movil">
+            <div id="contenedor-busqueda">
+                <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+                <datalist id="coincidencias"></datalist>
+                <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
+            </div>
+            
+            <button id="btn-hamburguesa" onclick="toggleMenuMovil()">☰</button>
         </div>
-        <input type="text" id="input-coordenadas" placeholder="Lat, Lng o DMS...">
-        <button onclick="buscarPorCoordenadas()">📍 Ir</button>
-        <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Semáforo</button>
-        <button id="btn-top-deudores" onclick="toggleTopDeudores()">🏆 Top Deudores</button>
-        <button id="btn-referencias" onclick="toggleReferencias()">📍 Referencias</button>
-        <button id="btn-reset" style="display:none;" onclick="volverAlMapa()">🔄 Volver</button>
+
+        <div id="controles-colapsables" class="controles-links">
+            <div class="grupo-coordenadas">
+                <input type="text" id="input-coordenadas" placeholder="Lat, Lng o DMS...">
+                <button onclick="buscarPorCoordenadas()">📍 Ir</button>
+            </div>
+            <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Semáforo</button>
+            <button id="btn-top-deudores" onclick="toggleTopDeudores()">🏆 Top Deudores</button>
+            <button id="btn-referencias" onclick="toggleReferencias()">📍 Referencias</button>
+            <button id="btn-reset" style="display:none;" onclick="volverAlMapa()">🔄 Volver</button>
+        </div>
     </div>
 
     <div id="map"></div>

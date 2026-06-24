@@ -23,6 +23,33 @@ body, html {
 }
 
 /* ==========================================================================
+   ETIQUETAS INTERNAS DEL MAPA (TEXTO NEGRO, SIN RECUADRO, OUTLINE BLANCO)
+   ========================================================================== */
+.etiqueta-parcela {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+    font-size: 11px !important;
+    text-shadow: 
+        -1px -1px 0 #ffffff,  
+         1px -1px 0 #ffffff,
+        -1px  1px 0 #ffffff,
+         1px  1px 0 #ffffff,
+         0px  0px 3px #ffffff !important;
+}
+
+/* Eliminar flechas por defecto de Leaflet en las etiquetas */
+.leaflet-tooltip-top.etiqueta-parcela::before,
+.leaflet-tooltip-bottom.etiqueta-parcela::before,
+.leaflet-tooltip-left.etiqueta-parcela::before,
+.leaflet-tooltip-right.etiqueta-parcela::before {
+    display: none !important;
+    border: none !important;
+}
+
+/* ==========================================================================
    MENÚ SUPERIOR DE CONTROLES (FIJADO CON ULTRA-PRIORIDAD PARA FIREFOX)
    ========================================================================== */
 #menu-controles {
@@ -37,354 +64,371 @@ body, html {
     align-items: center;
     padding: 0 20px;
     gap: 12px;
-    /* Solución Firefox: Forzar un contexto de apilamiento absoluto sobre Leaflet */
-    z-index: 999999 !important; 
-    pointer-events: auto !important;
+    z-index: 999999 !important; /* Capa superior absoluta anti-bugs */
 }
 
-#contenedor-busqueda {
-    position: relative !important; 
+/* Fila/Cabecera invisible en escritorio, usada solo para mobile */
+.cabecera-menu-movil {
     display: flex;
     align-items: center;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
+    width: auto;
+    gap: 12px;
+}
+
+/* El contenedor interno que envuelve los controles secundarios */
+.controles-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Botón Hamburguesa por defecto oculto en computadoras */
+#btn-hamburguesa {
+    display: none !important;
+}
+
+/* Grupo contenedor de búsqueda inteligente */
+#contenedor-busqueda {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 280px;
 }
 
 #input-busqueda {
-    width: 250px;
+    width: 100%;
     height: 36px;
-    padding: 0 12px;
+    padding: 0 40px 0 12px;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    background-color: #334155;
+    color: #ffffff;
     font-size: 13px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px 0 0 6px;
     outline: none;
-    position: relative !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
+    transition: all 0.2s ease;
+}
+
+#input-busqueda:focus {
+    border-color: #38bdf8;
+    background-color: #1e293b;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+#input-busqueda::placeholder {
+    color: #94a3b8;
 }
 
 #btn-buscar {
-    height: 36px;
-    padding: 0 12px;
-    border: 1px solid #cbd5e1;
-    border-left: none;
-    background: #f8fafc;
-    border-radius: 0 6px 6px 0;
+    position: absolute;
+    right: 4px;
+    height: 28px;
+    width: 32px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
     cursor: pointer;
-    position: relative !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+#btn-buscar:hover {
+    color: #38bdf8;
+}
+
+/* Inputs de coordenadas secundarias */
 #input-coordenadas {
-    width: 180px;
     height: 36px;
+    width: 180px;
     padding: 0 12px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #475569;
     border-radius: 6px;
+    background-color: #334155;
+    color: #ffffff;
+    font-size: 13px;
     outline: none;
-    position: relative !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
 }
 
+#input-coordenadas:focus {
+    border-color: #38bdf8;
+}
+
+/* Botones funcionales del header */
 #menu-controles button:not(#btn-buscar) {
     height: 36px;
     padding: 0 14px;
-    font-size: 13px;
-    color: #f8fafc;
-    background-color: #334155;
     border: 1px solid #475569;
     border-radius: 6px;
+    background-color: #334155;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
-    position: relative !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
 }
 
 #menu-controles button:not(#btn-buscar):hover {
     background-color: #475569;
+    color: #ffffff;
+    border-color: #64748b;
 }
 
 #menu-controles button.activo {
     background-color: #0284c7 !important;
-    border-color: #0369a1 !important;
+    color: #ffffff !important;
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
 }
 
+/* Botón especial para resetear la vista */
 #btn-reset {
-    background-color: #ef4444 !important;
-    border-color: #dc2626 !important;
-    margin-left: auto;
+    margin-left: auto; /* Empuja el botón al extremo derecho */
+    background-color: #dc2626 !important;
+    border-color: #b91c1c !important;
+    color: white !important;
 }
 
-/* Forzar que las sugerencias floten por encima de todo en cualquier navegador */
+#btn-reset:hover {
+    background-color: #b91c1c !important;
+}
+
+/* Autocomplete/Datalist nativo o customizado flotante */
 .ui-autocomplete {
-    z-index: 9999999 !important; 
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    z-index: 99999999 !important;
 }
 
 /* ==========================================================================
-   PANEL LATERAL (FICHA CATASTRAL)
+   PANEL LATERAL: INFORMACIÓN EXTENDIDA DE PARCELAS
    ========================================================================== */
 .panel-lateral {
-    position: absolute;
+    position: fixed;
     top: 75px;
-    left: 20px;
-    z-index: 1000;
-    width: 330px;
-    background: rgba(255, 255, 255, 0.98);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    padding: 15px;
-    max-height: 80vh;
-    overflow-y: auto;
+    left: 15px;
+    width: 340px;
+    max-height: calc(100vh - 100px);
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border: 1px solid #e2e8f0;
 }
 
 .cabecera-panel {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
+}
+
+.cabecera-panel h3 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .btn-cerrar {
     font-size: 20px;
     cursor: pointer;
     color: #94a3b8;
+    transition: color 0.15s;
 }
 
-.ficha-tabla {
+.btn-cerrar:hover {
+    color: #ffffff;
+}
+
+#contenido-tabla-datos {
+    overflow-y: auto;
+    padding: 12px;
+}
+
+/* Tablas internas semánticas del panel */
+.tabla-auditoria {
     width: 100%;
     border-collapse: collapse;
+    font-size: 12px;
 }
 
-.ficha-tabla tr {
+.tabla-auditoria tr {
     border-bottom: 1px solid #f1f5f9;
 }
 
-.ficha-tabla td {
-    padding: 6px 4px;
+.tabla-auditoria tr:last-child {
+    border-bottom: none;
 }
 
+.tabla-auditoria th {
+    text-align: left;
+    padding: 8px;
+    color: #64748b;
+    font-weight: 500;
+    width: 40%;
+    vertical-align: top;
+}
+
+.tabla-auditoria td {
+    padding: 8px;
+    color: #0f172a;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* Alertas de deuda dinámicas dentro del panel */
+.deuda-critica { color: #dc2626 !important; font-weight: 800 !important; }
+.deuda-moderada { color: #d97706 !important; }
+.deuda-regular { color: #2563eb !important; }
+.al-dia { color: #16a34a !important; }
+
 /* ==========================================================================
-   MODAL FLOTANTE (GRÁFICO SEMÁFORO)
+   MODAL FLOTANTE: GRÁFICO DE SEMÁFORO FISCAL
    ========================================================================== */
 .modal-grafico {
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 1000;
-    width: 310px;
-    background: white;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 280px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    padding: 14px;
+    z-index: 9999;
     border: 1px solid #e2e8f0;
 }
 
-.tarjeta-metrica-global {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.contenedor-barra-item {
+    margin-bottom: 10px;
 }
 
-.item-barra-progreso {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.contenedor-barra-item:last-child {
+    margin-bottom: 0;
 }
 
 .info-barra {
     display: flex;
     justify-content: space-between;
     font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
 }
 
-.linea-progreso-fondo {
-    background: #e2e8f0;
-    height: 8px;
-    border-radius: 4px;
+.riel-progreso {
+    width: 100%;
+    height: 12px;
+    background-color: #e2e8f0;
+    border-radius: 6px;
     overflow: hidden;
 }
 
-.linea-progreso-relleno { height: 100%; }
-.linea-progreso-relleno.verde { background: #2ecc71; }
-.linea-progreso-relleno.amarillo { background: #f1c40f; }
-.linea-progreso-relleno.rojo { background: #e74c3c; }
-
+.llenado-progreso {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* ==========================================================================
-   PANTALLA COMPLETA: REPORTE DE DEUDORES (ESCRITORIO)
+   VISTA DE REPORTES CORPORATIVOS (FULLSCREEN)
    ========================================================================== */
 .vista-completa {
     position: fixed;
-    top: 60px;
+    top: 0;
     left: 0;
-    width: 100%;
-    height: calc(100vh - 60px);
-    background-color: #f8fafc; 
-    z-index: 1999;
-    padding: 40px 60px;
-    overflow-y: auto;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f1f5f9;
+    z-index: 999999;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 }
 
 .cabecera-reporte {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 20px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #cbd5e1;
 }
 
 .cabecera-reporte h2 {
-    font-size: 24px;
+    font-size: 20px;
     color: #0f172a;
     font-weight: 700;
-    letter-spacing: -0.5px;
 }
 
-.btn-cerrar-pantalla {
-    padding: 10px 20px;
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
+.btn-cerrar-reporte {
+    background-color: #64748b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    transition: all 0.2s;
 }
 
-.btn-cerrar-pantalla:hover {
-    background-color: #f1f5f9;
-    border-color: #94a3b8;
-    color: #1e293b;
+.btn-cerrar-reporte:hover {
+    background-color: #475569;
+}
+
+.contenedor-tabla-reporte {
+    flex-grow: 1;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
 }
 
 .gran-tabla-reporte {
     width: 100%;
-    border-collapse: separate; 
-    border-spacing: 0;
-    background-color: #ffffff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0,0,0,0.05);
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
 }
 
 .gran-tabla-reporte th {
-    background-color: #f1f5f9;
-    padding: 16px 20px;
-    border-bottom: 2px solid #e2e8f0;
+    background-color: #f8fafc;
     color: #475569;
     font-weight: 600;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .gran-tabla-reporte td {
-    padding: 16px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
-    font-size: 13.5px;
-    vertical-align: middle;
-    transition: background-color 0.15s ease;
 }
 
-.gran-tabla-reporte tbody tr { 
-    cursor: pointer; 
+.gran-tabla-reporte tbody tr:hover {
+    background-color: #f8fafc;
+    cursor: pointer;
 }
-
-.gran-tabla-reporte tbody tr:hover td { 
-    background-color: #f8fafc; 
-}
-
-.celda-tgi-resaltada {
-    background-color: #f0fdf4;
-    color: #166534;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: 700;
-    font-size: 13px;
-    border: 1px solid #dcfce7;
-    display: inline-block;
-}
-
-.badge-periodos {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.badge-rojo { 
-    background-color: #fee2e2; 
-    color: #991b1b; 
-    border: 1px solid #fca5a5;
-}
-
 
 /* ==========================================================================
-   ETIQUETAS Y CAPAS DE LEAFLET
-   ========================================================================== */
-.etiqueta-zona {
-    background: rgba(15, 23, 42, 0.85) !important;
-    border: none !important;
-    color: white !important;
-    font-weight: bold !important;
-    padding: 4px 8px !important;
-    border-radius: 4px !important;
-}
-
-.etiqueta-parcela {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: #334155 !important;
-    font-weight: bold !important;
-    font-size: 9px !important;
-    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
-}
-
-.etiqueta-medida-segmento {
-    background: #2980b9 !important;
-    color: white !important;
-    font-weight: bold !important;
-    padding: 2px 5px !important;
-    border-radius: 3px !important;
-}
-
-.texto-referencia-mapa div {
-    background: white;
-    border: 1px solid #64748b;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-    transform: translate(-50%, -120%);
-}
-
-/* ANIMACIONES */
-.parcela-titilando {
-    animation: parpadeoLote 1.2s infinite alternate ease-in-out;
-}
-
-@keyframes parpadeoLote {
-    0% { fill-opacity: 0.25; stroke-width: 2px; stroke: #ffffff; }
-    100% { fill-opacity: 0.85; stroke-width: 5px; stroke: #f59e0b; }
-}
-
-
-/* ==========================================================================
-   ADAPTACIÓN EXCLUSIVA PARA CELULARES
+   ADAPTACIÓN EXCLUSIVA PARA CELULARES (RESPONSIVE)
    ========================================================================== */
 @media screen and (max-width: 768px) {
     
@@ -394,192 +438,177 @@ body, html {
         position: relative;
     }
 
+    /* Ajuste general del contenedor del menú */
     #menu-controles {
-        position: relative !important; 
+        position: fixed !important; 
         height: auto !important; 
         width: 100% !important;
         max-width: 100vw !important;
         flex-direction: column !important; 
         align-items: stretch !important;
-        padding: 12px !important;
-        gap: 10px !important;
+        padding: 10px !important;
+        gap: 0 !important;
         box-sizing: border-box !important;
-        z-index: 99999 !important; 
+        z-index: 999999 !important; 
+    }
+
+    /* Fila superior visible siempre: Contenedor Buscador + Botón Hamburguesa */
+    .cabecera-menu-movil {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        gap: 10px;
     }
 
     #contenedor-busqueda {
-        width: 100% !important;
+        flex-grow: 1 !important;
+        width: auto !important;
         box-sizing: border-box !important;
-        z-index: 99999 !important;
     }
 
     #input-busqueda {
-        flex-grow: 1 !important;
-        width: auto !important;
+        width: 100% !important;
         font-size: 14px !important; 
-        font-weight: normal !important;
-        z-index: 99999 !important;
     }
 
-    /* ACHICAR RESULTADOS EN MÓVIL */
-    .ui-autocomplete, 
-    .resultados-busqueda, 
-    #lista-resultados, 
-    #contenedor-busqueda ul, 
-    #contenedor-busqueda div[class*="resultados"],
-    #contenedor-busqueda div[id*="resultados"] {
-        font-size: 11px !important; 
-        font-weight: 700 !important; 
-        max-width: 90vw !important;
-        z-index: 9999999 !important; 
+    /* Activación visual de la Hamburguesa */
+    #btn-hamburguesa {
+        display: flex !important; 
+        height: 36px;
+        width: 42px;
+        font-size: 20px !important;
+        background-color: #334155 !important;
+        color: white !important;
+        border: 1px solid #475569 !important;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    .ui-menu-item, 
-    .ui-menu-item a,
-    .resultados-busqueda li,
-    #lista-resultados div {
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        padding: 4px 6px !important; 
+    /* El contenedor que aloja los botones secundarios en móvil */
+    .controles-links {
+        display: none !important; 
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: 10px !important;
+        border-top: 1px solid #334155;
+        padding-top: 10px !important;
+        width: 100% !important;
+    }
+
+    /* Clase que inyectará JavaScript para desplegar el menú */
+    .controles-links.mostrar-menu {
+        display: flex !important;
+    }
+
+    /* Contenedor adaptado para coordenadas */
+    .grupo-coordenadas {
+        display: flex !important;
+        gap: 6px !important;
+        width: 100% !important;
     }
 
     #input-coordenadas {
-        width: 100% !important;
+        flex-grow: 1 !important;
+        width: auto !important;
         font-size: 14px !important;
-        z-index: 99999 !important;
+    }
+
+    /* Forzar ancho completo a botones desplegados */
+    #menu-controles button:not(#btn-buscar, #btn-hamburguesa) {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
     }
 
     #btn-reset {
         margin-left: 0 !important;
-        width: 100% !important;
-        text-align: center !important;
-        z-index: 99999 !important;
     }
 
+    /* Ajustar mapa restando la cabecera móvil colapsada básica */
     #map {
         width: 100% !important;
         max-width: 100vw !important;
-        height: 55vh !important; 
-        margin-top: 0 !important;
+        height: calc(100vh - 56px) !important; 
+        margin-top: 56px !important;
         box-sizing: border-box !important;
         z-index: 1 !important;
     }
 
-    .panel-lateral {
-        position: relative !important;
-        top: 10px !important;
-        left: 0 !important;
-        width: 100% !important;
-        max-width: 100vw !important;
-        max-height: none !important;
-        margin-bottom: 15px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-        box-sizing: border-box !important;
+    /* Ajustar autocompletado en pantallas chicas */
+    .ui-autocomplete {
+        font-size: 12px !important; 
+        max-width: 85vw !important;
+        z-index: 9999999 !important; 
     }
 
+    /* Panel lateral flotante sobre el mapa */
+    .panel-lateral {
+        position: absolute !important; 
+        top: 65px !important;
+        left: 10px !important;
+        width: calc(100% - 20px) !important;
+        max-height: 45vh !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Gráfico minificado abajo a la derecha */
     .modal-grafico {
         position: fixed !important;
         bottom: 15px !important;
         right: 15px !important;
-        top: auto !important;
-        left: auto !important;
-        width: 230px !important; 
+        width: 240px !important; 
         padding: 10px !important;
-        z-index: 1500 !important; 
         background: rgba(255, 255, 255, 0.95) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+        z-index: 99999 !important;
     }
     
     .modal-grafico .info-barra {
         font-size: 9px !important; 
     }
 
+    /* ==========================================================================
+       CONSERVACIÓN EXCLUSIVA DE LA TABLA ANTERIOR EN TOP DEUDORES (CELULAR)
+       ========================================================================== */
     .vista-completa {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        padding: 15px 12px !important;
-        z-index: 99999 !important; 
+        padding: 10px !important;
+        z-index: 9999999 !important; 
         background-color: #f1f5f9 !important;
-        overflow-y: auto !important;
-        box-sizing: border-box !important;
     }
 
     .cabecera-reporte {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 12px !important;
-        margin-bottom: 15px !important;
-        padding-bottom: 12px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 5px !important;
+        margin-bottom: 10px !important;
     }
 
     .cabecera-reporte h2 {
-        font-size: 15px !important;
-        text-align: center !important;
-        line-height: 1.4 !important;
+        font-size: 12px !important;
+        max-width: 70% !important;
     }
 
-    .btn-cerrar-pantalla {
-        width: 100% !important;
-        text-align: center !important;
-        padding: 12px !important;
+    .btn-cerrar-reporte {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
     }
 
+    /* Se conserva el formato de tabla clásico reduciendo padding y tipografía */
     .gran-tabla-reporte {
-        display: block !important;
-        width: 100% !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border: none !important;
+        font-size: 10px !important;
     }
 
-    .gran-tabla-reporte thead {
-        display: none !important; 
-    }
-
-    .gran-tabla-reporte tbody {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    .gran-tabla-reporte tbody tr {
-        display: flex !important;
-        flex-direction: column !important; 
-        background-color: #ffffff !important;
-        margin-bottom: 12px !important;
-        padding: 14px !important;
-        border-radius: 10px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.05) !important;
-        gap: 8px !important;
-    }
-
+    .gran-tabla-reporte th, 
     .gran-tabla-reporte td {
-        display: block !important;
-        width: 100% !important;
-        padding: 0 !important;
-        border: none !important;
-        text-align: left !important;
-        font-size: 13px !important;
-    }
-
-    .gran-tabla-reporte td:nth-child(1) { order: 1 !important; }
-    .gran-tabla-reporte td:nth-child(2) { 
-        order: 2 !important; 
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        font-size: 14px !important;
-    }
-    .gran-tabla-reporte td:nth-child(3) { order: 3 !important; }
-    .gran-tabla-reporte td:nth-child(4) { 
-        order: 4 !important; 
-        text-align: right !important; 
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        color: #b91c1c !important; 
-        border-top: 1px dashed #e2e8f0 !important;
-        padding-top: 8px !important;
-        margin-top: 4px !important;
+        padding: 6px 4px !important;
     }
 }

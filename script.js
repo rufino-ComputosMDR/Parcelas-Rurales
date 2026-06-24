@@ -241,9 +241,14 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
 
                 let tablaHtml = `<table class="ficha-tabla">`;
                 for (let key in p) {
-                    let valor = p[key];
                     let keyMinuscula = key.toLowerCase();
+                    
+                    // Exclusión del dato Nomenc
+                    if (keyMinuscula.startsWith("nomenc")) {
+                        continue;
+                    }
 
+                    let valor = p[key];
                     if (keyMinuscula.includes("periodos deuda")) {
                         valor = parseInt(valor, 10) || 0;
                     } else if (keyMinuscula === "total adeudado sin judic." || keyMinuscula.includes("importe") || keyMinuscula.includes("monto")) {
@@ -368,6 +373,9 @@ function ejecutarBusqueda() {
     } else { 
         alert("No se encontró ningún registro catastral coincidente."); 
     }
+    
+    // Auto-contraer menú hamburguesa en mobile tras buscar
+    cerrarMenuMovilSiCorresponde();
 }
 
 // 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO
@@ -589,4 +597,31 @@ function buscarPorCoordenadas() {
     marcadorCoordenada = L.marker([lat, lng]).addTo(map).bindPopup(`Lat: ${lat}<br>Lng: ${lng}`).openPopup();
     map.setView([lat, lng], 14);
     document.getElementById('btn-reset').style.display = 'block';
+    
+    // Auto-contraer menú hamburguesa en mobile tras ir a coordenada
+    cerrarMenuMovilSiCorresponde();
+}
+
+// 9. FUNCIONES EXCLUSIVAS PARA ADAPTACIÓN MÓVIL (MENÚ HAMBURGUESA)
+function toggleMenuMovil() {
+    const contenedor = document.getElementById('controles-colapsables');
+    const boton = document.getElementById('btn-hamburguesa');
+    if (!contenedor || !boton) return;
+    
+    if (contenedor.classList.contains('mostrar-menu')) {
+        contenedor.classList.remove('mostrar-menu');
+        boton.innerText = "☰";
+    } else {
+        contenedor.classList.add('mostrar-menu');
+        boton.innerText = "✕";
+    }
+}
+
+function cerrarMenuMovilSiCorresponde() {
+    const contenedor = document.getElementById('controles-colapsables');
+    const boton = document.getElementById('btn-hamburguesa');
+    if (contenedor && contenedor.classList.contains('mostrar-menu')) {
+        contenedor.classList.remove('mostrar-menu');
+        if (boton) boton.innerText = "☰";
+    }
 }
