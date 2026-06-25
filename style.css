@@ -40,11 +40,32 @@ body, html {
          0px  0px 3px #ffffff !important;
 }
 
-/* Eliminar flechas por defecto de Leaflet en las etiquetas */
+/* Eliminar flechas por defecto de Leaflet en las etiquetas de parcelas */
 .leaflet-tooltip-top.etiqueta-parcela::before,
 .leaflet-tooltip-bottom.etiqueta-parcela::before,
 .leaflet-tooltip-left.etiqueta-parcela::before,
 .leaflet-tooltip-right.etiqueta-parcela::before {
+    display: none !important;
+    border: none !important;
+}
+
+/* Reducir al mínimo el cartel flotante de los metros de los lotes */
+.etiqueta-medida-segmento {
+    background-color: rgba(255, 255, 255, 0.9) !important; /* Blanco semi-transparente */
+    border: 1px solid #2980b9 !important; /* Borde fino azul */
+    color: #2c3e50 !important;
+    font-weight: bold !important;
+    font-size: 10px !important; /* Texto bien compacto */
+    padding: 1px 4px !important; /* Margen interno reducido al mínimo */
+    border-radius: 4px !important; /* Esquinas sutiles */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+}
+
+/* Eliminar flechas por defecto de Leaflet en los metros de los lotes */
+.leaflet-tooltip-top.etiqueta-medida-segmento::before,
+.leaflet-tooltip-bottom.etiqueta-medida-segmento::before,
+.leaflet-tooltip-left.etiqueta-medida-segmento::before,
+.leaflet-tooltip-right.etiqueta-medida-segmento::before {
     display: none !important;
     border: none !important;
 }
@@ -137,7 +158,7 @@ body, html {
     color: #38bdf8;
 }
 
-/* Inputs de coordenadas secundarias */
+/* Inputs de coordenadas alineado estrictamente en línea */
 #input-coordenadas {
     height: 36px;
     width: 180px;
@@ -148,6 +169,8 @@ body, html {
     color: #ffffff;
     font-size: 13px;
     outline: none;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 #input-coordenadas:focus {
@@ -165,10 +188,13 @@ body, html {
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: all 0.15s ease;
+    vertical-align: middle;
+    white-space: nowrap;
 }
 
 #menu-controles button:not(#btn-buscar):hover {
@@ -186,7 +212,7 @@ body, html {
 
 /* Botón especial para resetear la vista */
 #btn-reset {
-    margin-left: auto; /* Empuja el botón al extremo derecho */
+    margin-left: auto !important; /* Empuja el botón al extremo derecho */
     background-color: #dc2626 !important;
     border-color: #b91c1c !important;
     color: white !important;
@@ -504,7 +530,7 @@ body, html {
         display: flex !important;
     }
 
-    /* Contenedor adaptado para coordenadas */
+    /* Contenedor adaptado para coordenadas en móvil */
     .grupo-coordenadas {
         display: flex !important;
         gap: 6px !important;
@@ -517,7 +543,7 @@ body, html {
         font-size: 14px !important;
     }
 
-    /* Forzar ancho completo a botones desplegados */
+    /* Forzar ancho completo a botones desplegados en móvil */
     #menu-controles button:not(#btn-buscar, #btn-hamburguesa) {
         width: 100% !important;
         text-align: center !important;
