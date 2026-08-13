@@ -44,7 +44,6 @@ function limpiarMonto(texto) {
     let str = texto.toString().trim();
     if (!str) return 0;
     
-    // Limpieza de símbolos de moneda y espacios
     str = str.replace(/\$/g, '').replace(/\s+/g, '');
     
     const tieneComa = str.includes(',');
@@ -55,17 +54,13 @@ function limpiarMonto(texto) {
         const posPunto = str.lastIndexOf('.');
 
         if (posPunto > posComa) {
-            // Formato Anglosajón (ej: "69,610,525.75"): eliminar comas
             str = str.replace(/,/g, '');
         } else {
-            // Formato Latino tradicional (ej: "69.610.525,75"): eliminar puntos y cambiar coma por punto
             str = str.replace(/\./g, '').replace(',', '.');
         }
     } else if (tieneComa && !tienePunto) {
-        // Solo coma (ej: "69610525,75")
         str = str.replace(',', '.');
     } else if (tienePunto && !tieneComa) {
-        // Solo punto (ej: "69.610.525" o "525.75")
         const partes = str.split('.');
         const ultimaParte = partes[partes.length - 1];
         
@@ -227,7 +222,7 @@ function medirLadosDeParcela(feature) {
     capaSegmentosMedidos.addTo(map);
 }
 
-// 3. CAPA PARCELAS
+// 3. CAPA PARCELAS Y SEMÁFORO FISCAL (INCLUYE PARCELAS AL DÍA EN VERDE)
 function cargarParcelas(idHoja, bounds, valorBuscadoOriginal = null) {
     if (capaParcelas) map.removeLayer(capaParcelas);
     capaSegmentosMedidos.clearLayers(); 
@@ -258,17 +253,30 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
             }
 
             if (coincideBusqueda) {
-                return { color: '#002855', weight: 4, fillColor: '#00b4d8', fillOpacity: 0.8 };
+                return { color: '#002855', weight: 4, fillColor: '#00b4d8', fillOpacity: 0.85 };
             }
 
             let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
-            let periodos = parseInt(p[keyPeriodos]) || 0;
+            let periodos = parseInt(p[keyPeriodos], 10) || 0;
+            
+            // LÓGICA DE COLORES CORREGIDA:
+            // 0 a 1 período: Verde (#2ecc71)
+            // 2 a 3 períodos: Amarillo (#f1c40f)
+            // 4 o más períodos: Rojo (#e74c3c)
             let colorSemaforo = '#2ecc71'; 
 
-            if (periodos >= 2 && periodos <= 3) { colorSemaforo = '#f1c40f'; } 
-            else if (periodos >= 4) { colorSemaforo = '#e74c3c'; }
+            if (periodos >= 2 && periodos <= 3) { 
+                colorSemaforo = '#f1c40f'; 
+            } else if (periodos >= 4) { 
+                colorSemaforo = '#e74c3c'; 
+            }
 
-            return { color: '#7f8c8d', weight: 1, fillColor: colorSemaforo, fillOpacity: 0.5 };
+            return { 
+                color: '#334155', 
+                weight: 1.2, 
+                fillColor: colorSemaforo, 
+                fillOpacity: 0.65 
+            };
         },
         onEachFeature: (feature, layer) => {
             const p = feature.properties;
@@ -286,7 +294,7 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
             layer.on('click', function(e) {
                 medirLadosDeParcela(feature);
 
-                let tablaHtml = `<table class="ficha-tabla">`;
+                let tablaHtml = `<table class="ficha-tabla" style="width:100%; border-collapse:collapse;">`;
                 for (let key in p) {
                     let keyMinuscula = key.toLowerCase();
                     
@@ -300,12 +308,12 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
                     } else if (keyMinuscula === "total adeudado sin judic." || keyMinuscula.includes("importe") || keyMinuscula.includes("monto")) {
                         valor = formatearMoneda(valor);
                     }
-                    tablaHtml += `<tr><td class="label" style="font-weight:bold; color:#7f8c8d; padding-right:15px; font-size:11px;">${key}</td><td style="font-size:11px; color:#333; font-weight: 500;">${valor}</td></tr>`;
+                    tablaHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td class="label" style="font-weight:bold; color:#64748b; padding:6px 10px 6px 0; font-size:11px;">${key}</td><td style="font-size:11px; color:#0f172a; font-weight: 500; padding:6px 0;">${valor !== null && valor !== undefined ? valor : '-'}</td></tr>`;
                 }
                 tablaHtml += `</table>`;
 
                 document.getElementById('contenido-tabla-datos').innerHTML = tablaHtml;
-                document.getElementById('panel-datos-parcela').style.display = 'block';
+                document.getElementById('panel-datos-parcela').style.display = 'flex';
                 if (e && e.latlng) L.DomEvent.stopPropagation(e);
             });
 
@@ -344,7 +352,7 @@ function cerrarPanelDatos() {
     document.getElementById('input-busqueda').value = ""; 
 }
 
-// 4. AUTOCOMPLETADO
+// 4. AUTOCOMPLETADO ROBUSTO
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
@@ -423,7 +431,7 @@ function ejecutarBusqueda() {
     cerrarMenuMovilSiCorresponde();
 }
 
-// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO
+// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO FISCAL
 function toggleGraficoSemaforo() {
     const modal = document.getElementById('modal-grafico-barras');
     const btn = document.getElementById('btn-grafico');
@@ -508,7 +516,7 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     `;
 }
 
-// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO VISUAL MEJORADO)
+// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO VISUAL UNIFICADO)
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');

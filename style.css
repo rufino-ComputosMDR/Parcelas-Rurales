@@ -67,6 +67,29 @@ body, html {
     border: none !important;
 }
 
+.texto-referencia-mapa {
+    background: white;
+    border: 1px solid #1e293b;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1e293b;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    white-space: nowrap;
+}
+
+/* EFECTO PARCELA SELECCIONADA EN BÚSQUEDA */
+@keyframes parpadeo {
+    0% { fill-opacity: 0.3; stroke-width: 2px; }
+    50% { fill-opacity: 0.9; stroke-width: 5px; }
+    100% { fill-opacity: 0.3; stroke-width: 2px; }
+}
+
+.parcela-titilando {
+    animation: parpadeo 1.2s infinite ease-in-out;
+}
+
 /* ==========================================================================
    MENÚ SUPERIOR DE CONTROLES
    ========================================================================== */
@@ -279,6 +302,34 @@ body, html {
     border: 1px solid #e2e8f0;
 }
 
+.linea-progreso-fondo {
+    background-color: #e2e8f0;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.linea-progreso-relleno {
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.linea-progreso-relleno.verde { background-color: #2ecc71; }
+.linea-progreso-relleno.amarillo { background-color: #f1c40f; }
+.linea-progreso-relleno.rojo { background-color: #e74c3c; }
+
+.item-barra-progreso {
+    margin-bottom: 8px;
+}
+
+.info-barra {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #334155;
+}
+
 /* ==========================================================================
    VISTA DE REPORTES CORPORATIVOS & IMPRESIÓN (SCROLL CORREGIDO)
    ========================================================================== */
@@ -381,7 +432,7 @@ body, html {
     font-weight: 700;
     padding: 14px 18px;
     position: sticky;
-    top: -15px; /* Fijado superior alineado al padding interno del contenedor */
+    top: -15px;
     z-index: 10;
     border-bottom: 2px solid #334155;
     text-transform: uppercase;
@@ -396,12 +447,10 @@ body, html {
     transition: all 0.15s ease-in-out;
 }
 
-/* Filas intercaladas */
 .gran-tabla-reporte tbody tr:nth-child(even) {
     background-color: #f8fafc;
 }
 
-/* Efecto Hover */
 .gran-tabla-reporte tbody tr:hover {
     background-color: #e0f2fe !important;
     transform: scale(1.001);
@@ -439,7 +488,7 @@ body, html {
     border: 1px solid #fecaca;
 }
 
-/* REGLAS DE IMPRESIÓN OFICIAL / ESTILO PAPEL */
+/* REGLAS DE IMPRESIÓN OFICIAL */
 @media print {
     body * {
         visibility: hidden;
