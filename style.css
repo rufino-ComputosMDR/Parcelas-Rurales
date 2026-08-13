@@ -19,11 +19,11 @@ body, html {
     width: 100%;
     height: calc(100vh - 60px);
     margin-top: 60px;
-    z-index: 1 !important; /* El mapa se queda obligatoriamente al fondo */
+    z-index: 1 !important;
 }
 
 /* ==========================================================================
-   ETIQUETAS INTERNAS DEL MAPA (TEXTO NEGRO, SIN RECUADRO, OUTLINE BLANCO)
+   ETIQUETAS INTERNAS DEL MAPA
    ========================================================================== */
 .etiqueta-parcela {
     background: transparent !important;
@@ -40,7 +40,6 @@ body, html {
          0px  0px 3px #ffffff !important;
 }
 
-/* Eliminar flechas por defecto de Leaflet en las etiquetas de parcelas */
 .leaflet-tooltip-top.etiqueta-parcela::before,
 .leaflet-tooltip-bottom.etiqueta-parcela::before,
 .leaflet-tooltip-left.etiqueta-parcela::before,
@@ -49,19 +48,17 @@ body, html {
     border: none !important;
 }
 
-/* Reducir al mínimo el cartel flotante de los metros de los lotes */
 .etiqueta-medida-segmento {
-    background-color: rgba(255, 255, 255, 0.9) !important; /* Blanco semi-transparente */
-    border: 1px solid #2980b9 !important; /* Borde fino azul */
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #2980b9 !important;
     color: #2c3e50 !important;
     font-weight: bold !important;
-    font-size: 10px !important; /* Texto bien compacto */
-    padding: 1px 4px !important; /* Margen interno reducido al mínimo */
-    border-radius: 4px !important; /* Esquinas sutiles */
+    font-size: 10px !important;
+    padding: 1px 4px !important;
+    border-radius: 4px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
 }
 
-/* Eliminar flechas por defecto de Leaflet en los metros de los lotes */
 .leaflet-tooltip-top.etiqueta-medida-segmento::before,
 .leaflet-tooltip-bottom.etiqueta-medida-segmento::before,
 .leaflet-tooltip-left.etiqueta-medida-segmento::before,
@@ -71,7 +68,7 @@ body, html {
 }
 
 /* ==========================================================================
-   MENÚ SUPERIOR DE CONTROLES (FIJADO CON ULTRA-PRIORIDAD PARA FIREFOX)
+   MENÚ SUPERIOR DE CONTROLES
    ========================================================================== */
 #menu-controles {
     position: fixed !important;
@@ -85,10 +82,9 @@ body, html {
     align-items: center;
     padding: 0 20px;
     gap: 12px;
-    z-index: 999999 !important; /* Capa superior absoluta anti-bugs */
+    z-index: 999999 !important;
 }
 
-/* Fila/Cabecera invisible en escritorio, usada solo para mobile */
 .cabecera-menu-movil {
     display: flex;
     align-items: center;
@@ -96,19 +92,16 @@ body, html {
     gap: 12px;
 }
 
-/* El contenedor interno que envuelve los controles secundarios */
 .controles-links {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-/* Botón Hamburguesa por defecto oculto en computadoras */
 #btn-hamburguesa {
     display: none !important;
 }
 
-/* Grupo contenedor de búsqueda inteligente */
 #contenedor-busqueda {
     display: flex;
     align-items: center;
@@ -158,7 +151,6 @@ body, html {
     color: #38bdf8;
 }
 
-/* Inputs de coordenadas alineado estrictamente en línea */
 #input-coordenadas {
     height: 36px;
     width: 180px;
@@ -177,7 +169,6 @@ body, html {
     border-color: #38bdf8;
 }
 
-/* Botones funcionales del header */
 #menu-controles button:not(#btn-buscar) {
     height: 36px;
     padding: 0 14px;
@@ -210,9 +201,8 @@ body, html {
     box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
 }
 
-/* Botón especial para resetear la vista */
 #btn-reset {
-    margin-left: auto !important; /* Empuja el botón al extremo derecho */
+    margin-left: auto !important;
     background-color: #dc2626 !important;
     border-color: #b91c1c !important;
     color: white !important;
@@ -220,17 +210,6 @@ body, html {
 
 #btn-reset:hover {
     background-color: #b91c1c !important;
-}
-
-/* Autocomplete/Datalist nativo o customizado flotante */
-.ui-autocomplete {
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-    max-height: 300px !important;
-    overflow-y: auto !important;
-    z-index: 99999999 !important;
 }
 
 /* ==========================================================================
@@ -283,43 +262,6 @@ body, html {
     padding: 12px;
 }
 
-/* Tablas internas semánticas del panel */
-.tabla-auditoria {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-.tabla-auditoria tr {
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.tabla-auditoria tr:last-child {
-    border-bottom: none;
-}
-
-.tabla-auditoria th {
-    text-align: left;
-    padding: 8px;
-    color: #64748b;
-    font-weight: 500;
-    width: 40%;
-    vertical-align: top;
-}
-
-.tabla-auditoria td {
-    padding: 8px;
-    color: #0f172a;
-    font-weight: 600;
-    word-break: break-word;
-}
-
-/* Alertas de deuda dinámicas dentro del panel */
-.deuda-critica { color: #dc2626 !important; font-weight: 800 !important; }
-.deuda-moderada { color: #d97706 !important; }
-.deuda-regular { color: #2563eb !important; }
-.al-dia { color: #16a34a !important; }
-
 /* ==========================================================================
    MODAL FLOTANTE: GRÁFICO DE SEMÁFORO FISCAL
    ========================================================================== */
@@ -337,39 +279,8 @@ body, html {
     border: 1px solid #e2e8f0;
 }
 
-.contenedor-barra-item {
-    margin-bottom: 10px;
-}
-
-.contenedor-barra-item:last-child {
-    margin-bottom: 0;
-}
-
-.info-barra {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 4px;
-}
-
-.riel-progreso {
-    width: 100%;
-    height: 12px;
-    background-color: #e2e8f0;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.llenado-progreso {
-    height: 100%;
-    border-radius: 6px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* ==========================================================================
-   VISTA DE REPORTES CORPORATIVOS (FULLSCREEN)
+   VISTA DE REPORTES CORPORATIVOS & IMPRESIÓN (SCROLL CORREGIDO)
    ========================================================================== */
 .vista-completa {
     position: fixed;
@@ -377,9 +288,9 @@ body, html {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #f1f5f9;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     z-index: 999999;
-    padding: 30px;
+    padding: 20px 25px;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -389,82 +300,197 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 .cabecera-reporte h2 {
     font-size: 20px;
-    color: #0f172a;
+    color: #ffffff;
     font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.btn-cerrar-reporte {
-    background-color: #64748b;
+.btn-imprimir-reporte {
+    background-color: #0284c7;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 10px 18px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     font-size: 13px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
 }
 
+.btn-imprimir-reporte:hover {
+    background-color: #0369a1;
+    transform: translateY(-1px);
+}
+
+.btn-cerrar-pantalla,
+.btn-cerrar-reporte {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.btn-cerrar-pantalla:hover,
 .btn-cerrar-reporte:hover {
-    background-color: #475569;
+    background-color: #dc2626;
+    transform: translateY(-1px);
 }
 
-.contenedor-tabla-reporte {
-    flex-grow: 1;
-    overflow-y: auto;
+/* CONTENEDOR CON SCROLL RESPONSIVO AL 100% */
+.contenedor-tabla-reporte,
+#contenedor-tabla-grande-top {
+    flex: 1 1 auto;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto !important;
+    overflow-x: auto;
     background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     border: 1px solid #e2e8f0;
+    padding: 15px;
 }
 
+/* TABLA MODERNA CON SOMBREADOS Y SELECCIÓN VISUAL */
 .gran-tabla-reporte {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     text-align: left;
     font-size: 13px;
 }
 
 .gran-tabla-reporte th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 600;
-    padding: 12px 16px;
-    border-bottom: 2px solid #e2e8f0;
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    font-weight: 700;
+    padding: 14px 18px;
     position: sticky;
-    top: 0;
+    top: -15px; /* Fijado superior alineado al padding interno del contenedor */
     z-index: 10;
+    border-bottom: 2px solid #334155;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+}
+
+.gran-tabla-reporte th:first-child { border-top-left-radius: 8px; }
+.gran-tabla-reporte th:last-child { border-top-right-radius: 8px; }
+
+.gran-tabla-reporte tbody tr {
+    transition: all 0.15s ease-in-out;
+}
+
+/* Filas intercaladas */
+.gran-tabla-reporte tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+/* Efecto Hover */
+.gran-tabla-reporte tbody tr:hover {
+    background-color: #e0f2fe !important;
+    transform: scale(1.001);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+    cursor: pointer;
 }
 
 .gran-tabla-reporte td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e2e8f0;
     color: #334155;
 }
 
-.gran-tabla-reporte tbody tr:hover {
-    background-color: #f8fafc;
-    cursor: pointer;
+/* ESTILOS DE ETIQUETAS Y RESALTADOS */
+.celda-tgi-resaltada {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    font-weight: 700;
+}
+
+.badge-periodos {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-rojo {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* REGLAS DE IMPRESIÓN OFICIAL / ESTILO PAPEL */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #pantalla-completa-top, 
+    #pantalla-completa-top * {
+        visibility: visible;
+    }
+    #pantalla-completa-top {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        padding: 0 !important;
+    }
+    .cabecera-reporte button {
+        display: none !important;
+    }
+    .cabecera-reporte h2 {
+        color: #000000 !important;
+        font-size: 16pt;
+    }
+    #contenedor-tabla-grande-top {
+        max-height: none !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    .gran-tabla-reporte th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        position: static !important;
+    }
+    .gran-tabla-reporte td {
+        color: #000000 !important;
+    }
 }
 
 /* ==========================================================================
    ADAPTACIÓN EXCLUSIVA PARA CELULARES (RESPONSIVE)
    ========================================================================== */
 @media screen and (max-width: 768px) {
-    
     body, html {
         overflow-x: hidden !important; 
         max-width: 100vw !important;
         position: relative;
     }
 
-    /* Ajuste general del contenedor del menú */
     #menu-controles {
         position: fixed !important; 
         height: auto !important; 
@@ -478,7 +504,6 @@ body, html {
         z-index: 999999 !important; 
     }
 
-    /* Fila superior visible siempre: Contenedor Buscador + Botón Hamburguesa */
     .cabecera-menu-movil {
         display: flex !important;
         align-items: center !important;
@@ -498,7 +523,6 @@ body, html {
         font-size: 14px !important; 
     }
 
-    /* Activación visual de la Hamburguesa */
     #btn-hamburguesa {
         display: flex !important; 
         height: 36px;
@@ -514,7 +538,6 @@ body, html {
         justify-content: center !important;
     }
 
-    /* El contenedor que aloja los botones secundarios en móvil */
     .controles-links {
         display: none !important; 
         flex-direction: column !important;
@@ -525,12 +548,10 @@ body, html {
         width: 100% !important;
     }
 
-    /* Clase que inyectará JavaScript para desplegar el menú */
     .controles-links.mostrar-menu {
         display: flex !important;
     }
 
-    /* Contenedor adaptado para coordenadas en móvil */
     .grupo-coordenadas {
         display: flex !important;
         gap: 6px !important;
@@ -543,7 +564,6 @@ body, html {
         font-size: 14px !important;
     }
 
-    /* Forzar ancho completo a botones desplegados en móvil */
     #menu-controles button:not(#btn-buscar, #btn-hamburguesa) {
         width: 100% !important;
         text-align: center !important;
@@ -554,7 +574,6 @@ body, html {
         margin-left: 0 !important;
     }
 
-    /* Ajustar mapa restando la cabecera móvil colapsada básica */
     #map {
         width: 100% !important;
         max-width: 100vw !important;
@@ -564,14 +583,6 @@ body, html {
         z-index: 1 !important;
     }
 
-    /* Ajustar autocompletado en pantallas chicas */
-    .ui-autocomplete {
-        font-size: 12px !important; 
-        max-width: 85vw !important;
-        z-index: 9999999 !important; 
-    }
-
-    /* Panel lateral flotante sobre el mapa */
     .panel-lateral {
         position: absolute !important; 
         top: 65px !important;
@@ -581,24 +592,6 @@ body, html {
         box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
     }
 
-    /* Gráfico minificado abajo a la derecha */
-    .modal-grafico {
-        position: fixed !important;
-        bottom: 15px !important;
-        right: 15px !important;
-        width: 240px !important; 
-        padding: 10px !important;
-        background: rgba(255, 255, 255, 0.95) !important;
-        z-index: 99999 !important;
-    }
-    
-    .modal-grafico .info-barra {
-        font-size: 9px !important; 
-    }
-
-    /* ==========================================================================
-       CONSERVACIÓN EXCLUSIVA DE LA TABLA ANTERIOR EN TOP DEUDORES (CELULAR)
-       ========================================================================== */
     .vista-completa {
         position: fixed !important;
         top: 0 !important;
@@ -607,28 +600,8 @@ body, html {
         height: 100vh !important;
         padding: 10px !important;
         z-index: 9999999 !important; 
-        background-color: #f1f5f9 !important;
     }
 
-    .cabecera-reporte {
-        flex-direction: row !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        gap: 5px !important;
-        margin-bottom: 10px !important;
-    }
-
-    .cabecera-reporte h2 {
-        font-size: 12px !important;
-        max-width: 70% !important;
-    }
-
-    .btn-cerrar-reporte {
-        padding: 6px 10px !important;
-        font-size: 11px !important;
-    }
-
-    /* Se conserva el formato de tabla clásico reduciendo padding y tipografía */
     .gran-tabla-reporte {
         font-size: 10px !important;
     }

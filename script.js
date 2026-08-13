@@ -7,7 +7,7 @@ let referenciasVisibles = false;
 let graficoVisible = false;
 let topDeudoresVisible = false;
 
-// Variables para la capa base OSM y la Capa Satelital
+// Variables para la capa base OSM y Satelital
 let capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
 }).addTo(map);
@@ -44,28 +44,25 @@ function limpiarMonto(texto) {
     let str = texto.toString().trim();
     if (!str) return 0;
     
-    // Limpiar símbolos de moneda y espacios
+    // Limpieza de símbolos de moneda y espacios
     str = str.replace(/\$/g, '').replace(/\s+/g, '');
     
     const tieneComa = str.includes(',');
     const tienePunto = str.includes('.');
 
     if (tieneComa && tienePunto) {
-        // Evaluar cuál símbolo viene al final para determinar el separador decimal
         const posComa = str.lastIndexOf(',');
         const posPunto = str.lastIndexOf('.');
 
         if (posPunto > posComa) {
-            // Formato Anglosajón (ej: "69,610,525.75"):
-            // Se eliminan todas las comas de miles
+            // Formato Anglosajón (ej: "69,610,525.75"): eliminar comas
             str = str.replace(/,/g, '');
         } else {
-            // Formato Latino tradicional (ej: "69.610.525,75"):
-            // Se eliminan los puntos de miles y la coma pasa a ser punto
+            // Formato Latino tradicional (ej: "69.610.525,75"): eliminar puntos y cambiar coma por punto
             str = str.replace(/\./g, '').replace(',', '.');
         }
     } else if (tieneComa && !tienePunto) {
-        // Solo coma (ej: "69610525,75") -> pasa a ser punto decimal
+        // Solo coma (ej: "69610525,75")
         str = str.replace(',', '.');
     } else if (tienePunto && !tieneComa) {
         // Solo punto (ej: "69.610.525" o "525.75")
@@ -73,18 +70,12 @@ function limpiarMonto(texto) {
         const ultimaParte = partes[partes.length - 1];
         
         if (partes.length > 2 || ultimaParte.length > 2) {
-            // Puntos de miles: "69.610.525" -> "69610525"
             str = str.replace(/\./g, '');
         }
     }
 
     let resultadoFlotante = parseFloat(str);
     return isNaN(resultadoFlotante) ? 0 : resultadoFlotante;
-}
-
-function formatearMoneda(valor) {
-    let numero = limpiarMonto(valor);
-    return "$ " + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatearMoneda(valor) {
@@ -126,7 +117,6 @@ fetch('rurales.geojson')
         configurarLanzadorAutomaticoDatalist();
     })
     .catch(err => console.error("Error rurales:", err));
-
 
 function comenzarAuditoriaZona(idHoja, bounds) {
     if (map.hasLayer(capaZonas)) {
@@ -300,7 +290,6 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
                 for (let key in p) {
                     let keyMinuscula = key.toLowerCase();
                     
-                    // Exclusión del dato Nomenc
                     if (keyMinuscula.startsWith("nomenc")) {
                         continue;
                     }
@@ -519,7 +508,7 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     `;
 }
 
-// 7. CONTROLADOR DE REPORTES: DEUDORES TOP
+// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO VISUAL MEJORADO)
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -574,11 +563,11 @@ function generarGranTablaTop50Unificada() {
     let filasTopHtml = "";
     deudoresFiltrados.forEach((d) => {
         filasTopHtml += `
-            <tr onclick="hacerClicFilaTop('${d.tgi}')" style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 12px 16px;"><span class="celda-tgi-resaltada" style="font-weight: 600; font-family: monospace;">${d.tgi}</span></td>
-                <td style="padding: 12px 16px; color: #1e293b; text-transform: uppercase; font-size: 12.5px;">${d.titular}</td>
-                <td style="text-align: center; padding: 12px 16px;"><span class="badge-periodos badge-rojo" style="font-weight: 600; font-size: 12px;">Periodos (${d.periodos} Per.)</span></td>
-                <td style="text-align: right; font-weight: 700; color: #0f172a; font-size: 14px; padding: 12px 16px; font-family: monospace;">${formatearMoneda(d.monto)}</td>
+            <tr onclick="hacerClicFilaTop('${d.tgi}')">
+                <td style="padding: 14px 18px;"><span class="celda-tgi-resaltada">${d.tgi}</span></td>
+                <td style="padding: 14px 18px; color: #0f172a; font-weight: 600; text-transform: uppercase; font-size: 12px;">${d.titular}</td>
+                <td style="text-align: center; padding: 14px 18px;"><span class="badge-periodos badge-rojo">${d.periodos} Períodos</span></td>
+                <td style="text-align: right; font-weight: 800; color: #dc2626; font-size: 14px; padding: 14px 18px; font-family: 'Courier New', Courier, monospace;">${formatearMoneda(d.monto)}</td>
             </tr>
         `;
     });
@@ -587,13 +576,13 @@ function generarGranTablaTop50Unificada() {
         <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; font-style: italic;">
             * El presente informe detalla las obligaciones tributarias rurales unificadas por Código TGI que registran un estado de mora igual o superior a los 6 períodos fiscales acumulados.
         </div>
-        <table class="gran-tabla-reporte" style="width:100%; border-collapse: collapse; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <table class="gran-tabla-reporte">
             <thead>
-                <tr style="background-color: #f1f5f9;">
-                    <th style="padding: 14px 16px; text-align: left; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Identificador TGI</th>
-                    <th style="padding: 14px 16px; text-align: left; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contribuyente / Titular Registral</th>
-                    <th style="padding: 14px 16px; text-align: center; width: 200px; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Periodos Adeudados</th>
-                    <th style="padding: 14px 16px; text-align: right; width: 240px; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Deuda Acumulada</th>
+                <tr>
+                    <th style="padding: 14px 18px; text-align: left;">Identificador TGI</th>
+                    <th style="padding: 14px 18px; text-align: left;">Contribuyente / Titular Registral</th>
+                    <th style="padding: 14px 18px; text-align: center; width: 200px;">Periodos Adeudados</th>
+                    <th style="padding: 14px 18px; text-align: right; width: 240px;">Deuda Acumulada</th>
                 </tr>
             </thead>
             <tbody>

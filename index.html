@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditoría Catastral Rural</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=1.1" />
+    <link rel="stylesheet" href="style.css?v=1.3" />
 </head>
 <body>
 
@@ -47,10 +47,14 @@
         <div id="contenedor-barras-dinamicas"></div>
     </div>
 
+    <!-- PANTALLA COMPLETA TOP DEUDORES CON BOTÓN IMPRIMIR Y SCROLL CORREGIDO -->
     <div id="pantalla-completa-top" class="vista-completa" style="display:none;">
         <div class="cabecera-reporte">
             <h2>Grandes Deudores: Cuentas con Mayor Deuda Fiscal Acumulada</h2>
-            <button class="btn-cerrar-pantalla" onclick="toggleTopDeudores()">❌ Cerrar Reporte</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-imprimir-reporte" onclick="window.print()">🖨️ Imprimir / PDF</button>
+                <button class="btn-cerrar-pantalla" onclick="toggleTopDeudores()">❌ Cerrar Reporte</button>
+            </div>
         </div>
         <div id="contenedor-tabla-grande-top"></div>
     </div>
