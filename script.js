@@ -7,9 +7,34 @@ let referenciasVisibles = false;
 let graficoVisible = false;
 let topDeudoresVisible = false;
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Variables para la capa base OSM y la Capa Satelital
+let capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
 }).addTo(map);
+
+let capaSatelital = L.layerGroup([
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    }),
+    L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'),
+    L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}')
+]);
+
+let satelitalActiva = false;
+
+function toggleImagenSatelital() {
+    const btn = document.getElementById('btn-satelital');
+    if (satelitalActiva) {
+        map.removeLayer(capaSatelital);
+        capaOSM.addTo(map);
+        if (btn) btn.classList.remove('activo');
+    } else {
+        map.removeLayer(capaOSM);
+        capaSatelital.addTo(map);
+        if (btn) btn.classList.add('activo');
+    }
+    satelitalActiva = !satelitalActiva;
+}
 
 const colores = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
@@ -18,16 +43,48 @@ function limpiarMonto(texto) {
     if (typeof texto === 'number') return texto;
     let str = texto.toString().trim();
     if (!str) return 0;
+    
+    // Limpiar símbolos de moneda y espacios
     str = str.replace(/\$/g, '').replace(/\s+/g, '');
-    if (str.includes(',') && !str.includes('.')) {
+    
+    const tieneComa = str.includes(',');
+    const tienePunto = str.includes('.');
+
+    if (tieneComa && tienePunto) {
+        // Evaluar cuál símbolo viene al final para determinar el separador decimal
+        const posComa = str.lastIndexOf(',');
+        const posPunto = str.lastIndexOf('.');
+
+        if (posPunto > posComa) {
+            // Formato Anglosajón (ej: "69,610,525.75"):
+            // Se eliminan todas las comas de miles
+            str = str.replace(/,/g, '');
+        } else {
+            // Formato Latino tradicional (ej: "69.610.525,75"):
+            // Se eliminan los puntos de miles y la coma pasa a ser punto
+            str = str.replace(/\./g, '').replace(',', '.');
+        }
+    } else if (tieneComa && !tienePunto) {
+        // Solo coma (ej: "69610525,75") -> pasa a ser punto decimal
         str = str.replace(',', '.');
-    } else if (str.includes(',') && str.includes('.')) {
-        str = str.replace(/\./g, '').replace(',', '.');
-    } else if (str.includes('.') && str.split('.').pop().length > 2) {
-        str = str.replace(/\./g, '');
+    } else if (tienePunto && !tieneComa) {
+        // Solo punto (ej: "69.610.525" o "525.75")
+        const partes = str.split('.');
+        const ultimaParte = partes[partes.length - 1];
+        
+        if (partes.length > 2 || ultimaParte.length > 2) {
+            // Puntos de miles: "69.610.525" -> "69610525"
+            str = str.replace(/\./g, '');
+        }
     }
+
     let resultadoFlotante = parseFloat(str);
     return isNaN(resultadoFlotante) ? 0 : resultadoFlotante;
+}
+
+function formatearMoneda(valor) {
+    let numero = limpiarMonto(valor);
+    return "$ " + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatearMoneda(valor) {
@@ -374,7 +431,6 @@ function ejecutarBusqueda() {
         alert("No se encontró ningún registro catastral coincidente."); 
     }
     
-    // Auto-contraer menú hamburguesa en mobile tras buscar
     cerrarMenuMovilSiCorresponde();
 }
 
@@ -463,7 +519,7 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     `;
 }
 
-// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO FORMAL)
+// 7. CONTROLADOR DE REPORTES: DEUDORES TOP
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -598,11 +654,10 @@ function buscarPorCoordenadas() {
     map.setView([lat, lng], 14);
     document.getElementById('btn-reset').style.display = 'block';
     
-    // Auto-contraer menú hamburguesa en mobile tras ir a coordenada
     cerrarMenuMovilSiCorresponde();
 }
 
-// 9. FUNCIONES EXCLUSIVAS PARA ADAPTACIÓN MÓVIL (MENÚ HAMBURGUESA)
+// 9. FUNCIONES EXCLUSIVAS PARA ADAPTACIÓN MÓVIL
 function toggleMenuMovil() {
     const contenedor = document.getElementById('controles-colapsables');
     const boton = document.getElementById('btn-hamburguesa');
