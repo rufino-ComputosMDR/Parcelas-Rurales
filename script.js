@@ -6,6 +6,7 @@ let datosReferenciasGlobal = null;
 let referenciasVisibles = false;
 let graficoVisible = false;
 let topDeudoresVisible = false;
+let capaCaminosRurales = null;
 
 // Variables para la capa base OSM y Satelital
 let capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -78,6 +79,22 @@ function formatearMoneda(valor) {
     return "$ " + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// FUNCION AUXILIAR: Extrae la fecha contenida en la propiedad "Deuda a la fecha"
+function obtenerFechaDeuda() {
+    if (!datosRuralesGlobal || !datosRuralesGlobal.features || datosRuralesGlobal.features.length === 0) {
+        return "";
+    }
+    for (let f of datosRuralesGlobal.features) {
+        if (f.properties) {
+            let keyFecha = Object.keys(f.properties).find(k => k.toLowerCase().includes("deuda a la fecha"));
+            if (keyFecha && f.properties[keyFecha]) {
+                return f.properties[keyFecha].toString().trim();
+            }
+        }
+    }
+    return "";
+}
+
 // 1. CARGA DE ARCHIVOS GEOJSON
 fetch('zonas.geojson')
     .then(res => res.json())
@@ -130,16 +147,21 @@ function comenzarAuditoriaZona(idHoja, bounds) {
     }
 }
 
-// 2. REFERENCIAS
+// 2. REFERENCIAS Y CAMINOS RURALES
 function prepararCapaReferencias() {
     fetch('referencias.geojson')
         .then(res => res.json())
         .then(data => {
             datosReferenciasGlobal = data; 
+            
+            // Puntos de referencia
             capaReferencias = L.geoJSON(data, {
+                filter: function(feature) {
+                    return feature.geometry && feature.geometry.type === 'Point';
+                },
                 pointToLayer: function (feature, latlng) {
                     let p = feature.properties;
-                    let nombreVisible = p.Name || "Punto sin nombre";
+                    let nombreVisible = p.Name || p.nombre || p.NOMBRE || "Punto sin nombre";
                     let textoIcono = L.divIcon({
                         className: 'texto-referencia-mapa',
                         html: `<div>📍 ${nombreVisible}</div>`,
@@ -147,19 +169,47 @@ function prepararCapaReferencias() {
                     });
                     return L.marker(latlng, { icon: textoIcono });
                 }
-            }); 
+            });
+
+            // Resaltado de caminos rurales (LineString / MultiLineString)
+            capaCaminosRurales = L.geoJSON(data, {
+                filter: function(feature) {
+                    return feature.geometry && 
+                          (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString');
+                },
+                style: function(feature) {
+                    return {
+                        color: '#e67e22',
+                        weight: 4,
+                        opacity: 0.85,
+                        dashArray: '6, 6'
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    let p = feature.properties;
+                    let nombreCamino = p.Name || p.nombre || p.NOMBRE || "Camino Rural";
+
+                    layer.bindTooltip(nombreCamino, {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'etiqueta-camino-rural'
+                    });
+                }
+            }).addTo(map);
         })
         .catch(err => console.error("Error referencias:", err));
 }
 
 function toggleReferencias() {
-    if (!capaReferencias) return;
+    if (!capaReferencias && !capaCaminosRurales) return;
     if (referenciasVisibles) {
-        map.removeLayer(capaReferencias);
+        if (capaReferencias) map.removeLayer(capaReferencias);
+        if (capaCaminosRurales) map.removeLayer(capaCaminosRurales);
         document.getElementById('btn-referencias').innerText = "📍 Mostrar Referencias";
         document.getElementById('btn-referencias').classList.remove('activo');
     } else {
-        capaReferencias.addTo(map);
+        if (capaReferencias) capaReferencias.addTo(map);
+        if (capaCaminosRurales) capaCaminosRurales.addTo(map);
         document.getElementById('btn-referencias').innerText = "📍 Ocultar Referencias";
         document.getElementById('btn-referencias').classList.add('activo');
     }
@@ -222,7 +272,7 @@ function medirLadosDeParcela(feature) {
     capaSegmentosMedidos.addTo(map);
 }
 
-// 3. CAPA PARCELAS Y SEMÁFORO FISCAL (INCLUYE PARCELAS AL DÍA EN VERDE)
+// 3. CAPA PARCELAS Y SEMÁFORO FISCAL
 function cargarParcelas(idHoja, bounds, valorBuscadoOriginal = null) {
     if (capaParcelas) map.removeLayer(capaParcelas);
     capaSegmentosMedidos.clearLayers(); 
@@ -259,10 +309,6 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
             let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
             let periodos = parseInt(p[keyPeriodos], 10) || 0;
             
-            // LÓGICA DE COLORES CORREGIDA:
-            // 0 a 1 período: Verde (#2ecc71)
-            // 2 a 3 períodos: Amarillo (#f1c40f)
-            // 4 o más períodos: Rojo (#e74c3c)
             let colorSemaforo = '#2ecc71'; 
 
             if (periodos >= 2 && periodos <= 3) { 
@@ -479,10 +525,15 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     let pctR = total > 0 ? ((counts.Rojo / total) * 100).toFixed(1) : 0;
 
     let tituloGrafico = idHojaFiltro !== null ? `Sección / Hoja ${idHojaFiltro}` : "Estado Global Catastral";
+    let fechaTexto = obtenerFechaDeuda();
+    let subtituloFecha = fechaTexto ? `📅 Deuda a la fecha: ${fechaTexto}` : "📅 Deudas a la fecha";
 
     document.getElementById('contenedor-barras-dinamicas').innerHTML = `
-        <div style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #1e293b; font-size: 13px;">
+        <div style="text-align: center; margin-bottom: 4px; font-weight: bold; color: #1e293b; font-size: 13px;">
             📊 ${tituloGrafico} (${total} u.)
+        </div>
+        <div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: #0284c7; font-weight: 600;">
+            ${subtituloFecha}
         </div>
         <div class="tarjeta-metrica-global">
             <div class="item-barra-progreso">
@@ -516,7 +567,7 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     `;
 }
 
-// 7. CONTROLADOR DE REPORTES: DEUDORES TOP (FORMATO VISUAL UNIFICADO)
+// 7. CONTROLADOR DE REPORTES: DEUDORES TOP
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -556,7 +607,9 @@ function generarGranTablaTop50Unificada() {
                     monto: montoLimpio  
                 };
             } else {
-                mapTGI[tgiRaw].monto += montoLimpio;
+                if (montoLimpio > mapTGI[tgiRaw].monto) {
+                    mapTGI[tgiRaw].monto = montoLimpio;
+                }
                 if (periodos > mapTGI[tgiRaw].periodos) {
                     mapTGI[tgiRaw].periodos = periodos;
                 }
@@ -567,6 +620,10 @@ function generarGranTablaTop50Unificada() {
     let deudoresUnificados = Object.values(mapTGI);
     let deudoresFiltrados = deudoresUnificados.filter(d => d.periodos >= 6);
     deudoresFiltrados.sort((a, b) => b.monto - a.monto);
+
+    let fechaTexto = obtenerFechaDeuda();
+    let badgeFecha = fechaTexto ? `📅 Deuda a la fecha: ${fechaTexto}` : "📅 Deudas a la fecha";
+    let columnaMontoTitulo = fechaTexto ? `Deuda Total TGI (al ${fechaTexto})` : "Deuda Total TGI a la Fecha";
 
     let filasTopHtml = "";
     deudoresFiltrados.forEach((d) => {
@@ -581,8 +638,9 @@ function generarGranTablaTop50Unificada() {
     });
 
     document.getElementById('contenedor-tabla-grande-top').innerHTML = `
-        <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; font-style: italic;">
-            * El presente informe detalla las obligaciones tributarias rurales unificadas por Código TGI que registran un estado de mora igual o superior a los 6 períodos fiscales acumulados.
+        <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; font-style: italic; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span>* El presente informe detalla las obligaciones tributarias rurales por Código TGI que registran un estado de mora igual o superior a los 6 períodos fiscales.</span>
+            <span style="font-weight: 700; color: #0284c7; background-color: #e0f2fe; padding: 4px 10px; border-radius: 4px; font-style: normal; font-size: 12px;">${badgeFecha}</span>
         </div>
         <table class="gran-tabla-reporte">
             <thead>
@@ -590,7 +648,7 @@ function generarGranTablaTop50Unificada() {
                     <th style="padding: 14px 18px; text-align: left;">Identificador TGI</th>
                     <th style="padding: 14px 18px; text-align: left;">Contribuyente / Titular Registral</th>
                     <th style="padding: 14px 18px; text-align: center; width: 200px;">Periodos Adeudados</th>
-                    <th style="padding: 14px 18px; text-align: right; width: 240px;">Deuda Acumulada</th>
+                    <th style="padding: 14px 18px; text-align: right; width: 260px;">${columnaMontoTitulo}</th>
                 </tr>
             </thead>
             <tbody>
