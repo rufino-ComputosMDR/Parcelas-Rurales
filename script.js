@@ -3,10 +3,13 @@ let capaZonas, capaParcelas, capaReferencias, marcadorCoordenada;
 let capaSegmentosMedidos = L.featureGroup(); 
 let datosRuralesGlobal = null; 
 let datosReferenciasGlobal = null; 
+let datosCaminosGlobal = null;
+let capaCaminosRurales = null;
+
 let referenciasVisibles = false;
+let caminosVisibles = false;
 let graficoVisible = false;
 let topDeudoresVisible = false;
-let capaCaminosRurales = null;
 
 // Variables para la capa base OSM y Satelital
 let capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -46,14 +49,12 @@ function limpiarMonto(texto) {
     if (!str) return 0;
     
     str = str.replace(/\$/g, '').replace(/\s+/g, '');
-    
     const tieneComa = str.includes(',');
     const tienePunto = str.includes('.');
 
     if (tieneComa && tienePunto) {
         const posComa = str.lastIndexOf(',');
         const posPunto = str.lastIndexOf('.');
-
         if (posPunto > posComa) {
             str = str.replace(/,/g, '');
         } else {
@@ -63,9 +64,7 @@ function limpiarMonto(texto) {
         str = str.replace(',', '.');
     } else if (tienePunto && !tieneComa) {
         const partes = str.split('.');
-        const ultimaParte = partes[partes.length - 1];
-        
-        if (partes.length > 2 || ultimaParte.length > 2) {
+        if (partes.length > 2 || partes[partes.length - 1].length > 2) {
             str = str.replace(/\./g, '');
         }
     }
@@ -79,11 +78,8 @@ function formatearMoneda(valor) {
     return "$ " + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// FUNCION AUXILIAR: Extrae la fecha contenida en la propiedad "Deuda a la fecha"
 function obtenerFechaDeuda() {
-    if (!datosRuralesGlobal || !datosRuralesGlobal.features || datosRuralesGlobal.features.length === 0) {
-        return "";
-    }
+    if (!datosRuralesGlobal || !datosRuralesGlobal.features || datosRuralesGlobal.features.length === 0) return "";
     for (let f of datosRuralesGlobal.features) {
         if (f.properties) {
             let keyFecha = Object.keys(f.properties).find(k => k.toLowerCase().includes("deuda a la fecha"));
@@ -108,9 +104,7 @@ fetch('zonas.geojson')
             }),
             onEachFeature: (feature, layer) => {
                 layer.bindTooltip("Hoja " + feature.properties.id, {
-                    permanent: true,
-                    direction: 'center',
-                    className: 'etiqueta-zona'
+                    permanent: true, direction: 'center', className: 'etiqueta-zona'
                 });
                 layer.on('click', function(e) {
                     comenzarAuditoriaZona(feature.properties.id, e.target.getBounds());
@@ -119,6 +113,7 @@ fetch('zonas.geojson')
         }).addTo(map);
         map.fitBounds(capaZonas.getBounds());
         prepararCapaReferencias();
+        cargarCaminosRuralesBase();
     })
     .catch(err => console.error("Error zonas:", err));
 
@@ -147,14 +142,71 @@ function comenzarAuditoriaZona(idHoja, bounds) {
     }
 }
 
-// 2. REFERENCIAS Y CAMINOS RURALES
+// 2. CAMINOS RURALES Y REFERENCIAS (INTEGRADOS AL MAPA PRINCIPAL)
+function cargarCaminosRuralesBase() {
+    fetch('caminos.geojson')
+        .then(res => res.json())
+        .then(data => {
+            datosCaminosGlobal = data;
+            
+            capaCaminosRurales = L.geoJSON(data, {
+                style: function(feature) {
+                    return {
+                        color: '#d35400',
+                        weight: 4,
+                        opacity: 0.85,
+                        dashArray: '8, 6'
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    const p = feature.properties;
+                    const nombreCamino = p.NombreCami || p.Name || p.nombre || `Camino ${p.id || ''}`;
+                    
+                    layer.bindTooltip(nombreCamino, {
+                        permanent: false,
+                        direction: 'center',
+                        className: 'etiqueta-camino-principal'
+                    });
+
+                    layer.on('click', function(e) {
+                        let tablaHtml = `<table class="ficha-tabla" style="width:100%; border-collapse:collapse;">`;
+                        tablaHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td colspan="2" style="font-weight:bold; color:#d35400; padding:6px 0; font-size:13px;">🛣️ ${nombreCamino}</td></tr>`;
+                        for (let key in p) {
+                            tablaHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td class="label" style="font-weight:bold; color:#64748b; padding:6px 10px 6px 0; font-size:11px;">${key}</td><td style="font-size:11px; color:#0f172a; padding:6px 0;">${p[key] || '-'}</td></tr>`;
+                        }
+                        tablaHtml += `</table>`;
+
+                        document.getElementById('contenido-tabla-datos').innerHTML = tablaHtml;
+                        document.getElementById('panel-datos-parcela').style.display = 'flex';
+                        if (e && e.latlng) L.DomEvent.stopPropagation(e);
+                    });
+                }
+            });
+        })
+        .catch(err => console.error("Error al cargar caminos.geojson:", err));
+}
+
+function toggleRedCaminos() {
+    const btn = document.getElementById('btn-red-caminos');
+    if (!capaCaminosRurales) return;
+
+    if (caminosVisibles) {
+        map.removeLayer(capaCaminosRurales);
+        if (btn) btn.classList.remove('activo');
+    } else {
+        capaCaminosRurales.addTo(map);
+        capaCaminosRurales.bringToFront(); 
+        if (btn) btn.classList.add('activo');
+    }
+    caminosVisibles = !caminosVisibles;
+    cerrarMenuMovilSiCorresponde();
+}
+
 function prepararCapaReferencias() {
     fetch('referencias.geojson')
         .then(res => res.json())
         .then(data => {
             datosReferenciasGlobal = data; 
-            
-            // Puntos de referencia
             capaReferencias = L.geoJSON(data, {
                 filter: function(feature) {
                     return feature.geometry && feature.geometry.type === 'Point';
@@ -170,48 +222,19 @@ function prepararCapaReferencias() {
                     return L.marker(latlng, { icon: textoIcono });
                 }
             });
-
-            // Resaltado de caminos rurales (LineString / MultiLineString)
-            capaCaminosRurales = L.geoJSON(data, {
-                filter: function(feature) {
-                    return feature.geometry && 
-                          (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString');
-                },
-                style: function(feature) {
-                    return {
-                        color: '#e67e22',
-                        weight: 4,
-                        opacity: 0.85,
-                        dashArray: '6, 6'
-                    };
-                },
-                onEachFeature: function(feature, layer) {
-                    let p = feature.properties;
-                    let nombreCamino = p.Name || p.nombre || p.NOMBRE || "Camino Rural";
-
-                    layer.bindTooltip(nombreCamino, {
-                        permanent: true,
-                        direction: 'center',
-                        className: 'etiqueta-camino-rural'
-                    });
-                }
-            }).addTo(map);
         })
         .catch(err => console.error("Error referencias:", err));
 }
 
 function toggleReferencias() {
-    if (!capaReferencias && !capaCaminosRurales) return;
+    if (!capaReferencias) return;
+    const btn = document.getElementById('btn-referencias');
     if (referenciasVisibles) {
-        if (capaReferencias) map.removeLayer(capaReferencias);
-        if (capaCaminosRurales) map.removeLayer(capaCaminosRurales);
-        document.getElementById('btn-referencias').innerText = "📍 Mostrar Referencias";
-        document.getElementById('btn-referencias').classList.remove('activo');
+        map.removeLayer(capaReferencias);
+        if (btn) btn.classList.remove('activo');
     } else {
-        if (capaReferencias) capaReferencias.addTo(map);
-        if (capaCaminosRurales) capaCaminosRurales.addTo(map);
-        document.getElementById('btn-referencias').innerText = "📍 Ocultar Referencias";
-        document.getElementById('btn-referencias').classList.add('activo');
+        capaReferencias.addTo(map);
+        if (btn) btn.classList.add('activo');
     }
     referenciasVisibles = !referenciasVisibles;
 }
@@ -310,19 +333,13 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
             let periodos = parseInt(p[keyPeriodos], 10) || 0;
             
             let colorSemaforo = '#2ecc71'; 
-
             if (periodos >= 2 && periodos <= 3) { 
                 colorSemaforo = '#f1c40f'; 
             } else if (periodos >= 4) { 
                 colorSemaforo = '#e74c3c'; 
             }
 
-            return { 
-                color: '#334155', 
-                weight: 1.2, 
-                fillColor: colorSemaforo, 
-                fillOpacity: 0.65 
-            };
+            return { color: '#334155', weight: 1.2, fillColor: colorSemaforo, fillOpacity: 0.65 };
         },
         onEachFeature: (feature, layer) => {
             const p = feature.properties;
@@ -343,10 +360,7 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
                 let tablaHtml = `<table class="ficha-tabla" style="width:100%; border-collapse:collapse;">`;
                 for (let key in p) {
                     let keyMinuscula = key.toLowerCase();
-                    
-                    if (keyMinuscula.startsWith("nomenc")) {
-                        continue;
-                    }
+                    if (keyMinuscula.startsWith("nomenc")) continue;
 
                     let valor = p[key];
                     if (keyMinuscula.includes("periodos deuda")) {
@@ -372,7 +386,6 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
                 if (partida === v || tgi === v || titular === v || titular.includes(v)) {
                     setTimeout(() => {
                         if (layer._path) layer._path.classList.add('parcela-titilando');
-                        
                         if (!unLoteYaAbrioFicha) {
                             medirLadosDeParcela(feature); 
                             layer.fireEvent('click'); 
@@ -386,6 +399,10 @@ function renderizarCapaParcelas(idHoja, bounds, valorBuscadoOriginal) {
 
     if (map.hasLayer(capaZonas)) map.removeLayer(capaZonas);
     
+    if (capaCaminosRurales && map.hasLayer(capaCaminosRurales)) {
+        capaCaminosRurales.bringToFront();
+    }
+    
     if (bounds && typeof bounds.isValid === 'function' && bounds.isValid()) {
         map.fitBounds(bounds, { padding: [30, 30] });
     }
@@ -398,38 +415,53 @@ function cerrarPanelDatos() {
     document.getElementById('input-busqueda').value = ""; 
 }
 
-// 4. AUTOCOMPLETADO ROBUSTO
+// 4. AUTOCOMPLETADO Y BÚSQUEDA INTEGRADA (PARCELAS Y CAMINOS)
 function actualizarCoincidencias() {
     const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
     datalist.innerHTML = ""; 
     
-    if (valor.length < 2 || !datosRuralesGlobal) return;
+    if (valor.length < 2) return;
     let contador = 0;
     
-    for (let f of datosRuralesGlobal.features) {
-        const p = f.properties;
-        const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
-        const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
-        const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
-        
-        if (partida.includes(valor) || tgi.includes(valor) || titular.includes(valor)) {
-            const option = document.createElement('option');
+    if (datosRuralesGlobal) {
+        for (let f of datosRuralesGlobal.features) {
+            const p = f.properties;
+            const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
+            const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
+            const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
             
-            if (titular.includes(valor)) {
-                option.value = p["Tit. Nombre"];
-                option.label = `[TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]}]`;
-            } else if (tgi.includes(valor)) {
-                option.value = p["TGIRural"].toString();
-                option.label = `[Titular: ${p["Tit. Nombre"] || 'S/D'} | Partida: ${p["PARTIDA"]}]`;
-            } else {
-                option.value = p["PARTIDA"].toString();
-                option.label = `[TGI: ${p["TGIRural"]} | Titular: ${p["Tit. Nombre"] || 'S/D'}]`;
+            if (partida.includes(valor) || tgi.includes(valor) || titular.includes(valor)) {
+                const option = document.createElement('option');
+                if (titular.includes(valor)) {
+                    option.value = p["Tit. Nombre"];
+                    option.label = `[TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]}]`;
+                } else if (tgi.includes(valor)) {
+                    option.value = p["TGIRural"].toString();
+                    option.label = `[Titular: ${p["Tit. Nombre"] || 'S/D'}]`;
+                } else {
+                    option.value = p["PARTIDA"].toString();
+                    option.label = `[TGI: ${p["TGIRural"]} | Titular: ${p["Tit. Nombre"] || 'S/D'}]`;
+                }
+                datalist.appendChild(option);
+                contador++; 
+                if (contador >= 8) break; 
             }
-            
-            datalist.appendChild(option);
-            contador++; 
-            if (contador >= 10) break; 
+        }
+    }
+
+    if (datosCaminosGlobal) {
+        for (let f of datosCaminosGlobal.features) {
+            const p = f.properties;
+            const nombreCamino = p.NombreCami || p.Name || p.nombre || "";
+            if (nombreCamino.toLowerCase().includes(valor)) {
+                const option = document.createElement('option');
+                option.value = nombreCamino;
+                option.label = `[🛣️ Camino Rural]`;
+                datalist.appendChild(option);
+                contador++;
+                if (contador >= 10) break;
+            }
         }
     }
 }
@@ -449,19 +481,19 @@ function configurarLanzadorAutomaticoDatalist() {
     });
 }
 
-// 5. MOTOR DE BÚSQUEDA CATASTRAL
 function ejecutarBusqueda() {
     let valorBuscado = document.getElementById('input-busqueda').value.trim();
     if (!valorBuscado) { alert("Ingrese un término para buscar."); return; }
     let vLow = valorBuscado.toLowerCase();
 
-    const parcelasEncontradas = datosRuralesGlobal.features.filter(f => {
+    // 1. Buscar en Parcelas
+    const parcelasEncontradas = datosRuralesGlobal ? datosRuralesGlobal.features.filter(f => {
         const p = f.properties;
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
         const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
         return partida === vLow || tgi === vLow || titular === vLow || titular.includes(vLow);
-    });
+    }) : [];
 
     if (parcelasEncontradas.length > 0) {
         const idHoja = parcelasEncontradas[0].properties.Hoja;
@@ -470,14 +502,33 @@ function ejecutarBusqueda() {
         
         comenzarAuditoriaZona(idHoja, boundsGlobales);
         setTimeout(() => { cargarParcelas(idHoja, boundsGlobales, valorBuscado); }, 200);
-    } else { 
-        alert("No se encontró ningún registro catastral coincidente."); 
+        cerrarMenuMovilSiCorresponde();
+        return;
     }
-    
+
+    // 2. Buscar en Caminos Rurales
+    if (datosCaminosGlobal) {
+        const caminoEncontrado = datosCaminosGlobal.features.find(f => {
+            const p = f.properties;
+            const nombreCamino = (p.NombreCami || p.Name || p.nombre || "").toLowerCase();
+            return nombreCamino.includes(vLow);
+        });
+
+        if (caminoEncontrado) {
+            if (!caminosVisibles) toggleRedCaminos(); 
+            const capaCamino = L.geoJSON(caminoEncontrado);
+            map.fitBounds(capaCamino.getBounds(), { padding: [50, 50] });
+            document.getElementById('btn-reset').style.display = 'block';
+            cerrarMenuMovilSiCorresponde();
+            return;
+        }
+    }
+
+    alert("No se encontró ningún registro catastral o camino coincidente."); 
     cerrarMenuMovilSiCorresponde();
 }
 
-// 6. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO FISCAL
+// 5. CONTROLADOR DE VENTANA: GRÁFICO SEMÁFORO FISCAL
 function toggleGraficoSemaforo() {
     const modal = document.getElementById('modal-grafico-barras');
     const btn = document.getElementById('btn-grafico');
@@ -507,11 +558,8 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
     
     datosRuralesGlobal.features.forEach(f => {
         let p = f.properties;
-        
         if (idHojaFiltro !== null) {
-            if (!p.Hoja || parseInt(p.Hoja, 10) !== parseInt(idHojaFiltro, 10)) {
-                return; 
-            }
+            if (!p.Hoja || parseInt(p.Hoja, 10) !== parseInt(idHojaFiltro, 10)) return; 
         }
 
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
@@ -549,25 +597,10 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
                 <div class="linea-progreso-fondo"><div class="linea-progreso-relleno rojo" style="width: ${pctR}%"></div></div>
             </div>
         </div>
-        
-        <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #64748b;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; background-color: #2ecc71; border-radius: 50%; display: inline-block;"></span>
-                <span><strong>Al Día:</strong> 0 a 1 período adeudado.</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; background-color: #f1c40f; border-radius: 50%; display: inline-block;"></span>
-                <span><strong>Mediana:</strong> 2 a 3 períodos adeudados.</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%; display: inline-block;"></span>
-                <span><strong>Deuda:</strong> 4 o más períodos adeudados.</span>
-            </div>
-        </div>
     `;
 }
 
-// 7. CONTROLADOR DE REPORTES: DEUDORES TOP
+// 6. REPORTES Y DEUDORES TOP
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
@@ -585,40 +618,27 @@ function toggleTopDeudores() {
 
 function generarGranTablaTop50Unificada() {
     if (!datosRuralesGlobal) return;
-    
     let mapTGI = {};
     
     datosRuralesGlobal.features.forEach(f => {
         let p = f.properties;
         let tgiRaw = p["TGIRural"] ? p["TGIRural"].toString().trim() : "S/D";
-        
         let keyPeriodos = Object.keys(p).find(k => k.toLowerCase().includes("periodos")) || "Periodos Deuda";
         let periodos = parseInt(p[keyPeriodos], 10) || 0;
-
         let keyMonto = Object.keys(p).find(k => k.toLowerCase().includes("total adeudado") || k.toLowerCase().includes("importe") || k.toLowerCase().includes("monto")) || "Total Adeudado sin judic.";
         let montoLimpio = limpiarMonto(p[keyMonto]);
 
         if (montoLimpio > 0) {
             if (!mapTGI[tgiRaw]) {
-                mapTGI[tgiRaw] = {
-                    tgi: tgiRaw,
-                    titular: p["Tit. Nombre"] || "Sin Titular Registrado",
-                    periodos: periodos, 
-                    monto: montoLimpio  
-                };
+                mapTGI[tgiRaw] = { tgi: tgiRaw, titular: p["Tit. Nombre"] || "Sin Titular Registrado", periodos: periodos, monto: montoLimpio };
             } else {
-                if (montoLimpio > mapTGI[tgiRaw].monto) {
-                    mapTGI[tgiRaw].monto = montoLimpio;
-                }
-                if (periodos > mapTGI[tgiRaw].periodos) {
-                    mapTGI[tgiRaw].periodos = periodos;
-                }
+                if (montoLimpio > mapTGI[tgiRaw].monto) mapTGI[tgiRaw].monto = montoLimpio;
+                if (periodos > mapTGI[tgiRaw].periodos) mapTGI[tgiRaw].periodos = periodos;
             }
         }
     });
 
-    let deudoresUnificados = Object.values(mapTGI);
-    let deudoresFiltrados = deudoresUnificados.filter(d => d.periodos >= 6);
+    let deudoresFiltrados = Object.values(mapTGI).filter(d => d.periodos >= 6);
     deudoresFiltrados.sort((a, b) => b.monto - a.monto);
 
     let fechaTexto = obtenerFechaDeuda();
@@ -645,10 +665,10 @@ function generarGranTablaTop50Unificada() {
         <table class="gran-tabla-reporte">
             <thead>
                 <tr>
-                    <th style="padding: 14px 18px; text-align: left;">Identificador TGI</th>
-                    <th style="padding: 14px 18px; text-align: left;">Contribuyente / Titular Registral</th>
-                    <th style="padding: 14px 18px; text-align: center; width: 200px;">Periodos Adeudados</th>
-                    <th style="padding: 14px 18px; text-align: right; width: 260px;">${columnaMontoTitulo}</th>
+                    <th>Identificador TGI</th>
+                    <th>Contribuyente / Titular Registral</th>
+                    <th style="text-align: center; width: 200px;">Periodos Adeudados</th>
+                    <th style="text-align: right; width: 260px;">${columnaMontoTitulo}</th>
                 </tr>
             </thead>
             <tbody>
@@ -664,7 +684,7 @@ function hacerClicFilaTop(tgiBuscado) {
     ejecutarBusqueda();
 }
 
-// 8. CONTROLES GENERALES Y RESETEO
+// 7. RESET Y FUNCIONES AUXILIARES
 function volverAlMapa() {
     if (capaParcelas) map.removeLayer(capaParcelas);
     if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
@@ -708,11 +728,9 @@ function buscarPorCoordenadas() {
     marcadorCoordenada = L.marker([lat, lng]).addTo(map).bindPopup(`Lat: ${lat}<br>Lng: ${lng}`).openPopup();
     map.setView([lat, lng], 14);
     document.getElementById('btn-reset').style.display = 'block';
-    
     cerrarMenuMovilSiCorresponde();
 }
 
-// 9. FUNCIONES EXCLUSIVAS PARA ADAPTACIÓN MÓVIL
 function toggleMenuMovil() {
     const contenedor = document.getElementById('controles-colapsables');
     const boton = document.getElementById('btn-hamburguesa');

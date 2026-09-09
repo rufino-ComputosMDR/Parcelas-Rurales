@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditoría Catastral Rural</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=1.5" />
+    <link rel="stylesheet" href="style.css?v=1.8" />
 </head>
 <body>
 
     <div id="menu-controles">
         <div class="cabecera-menu-movil">
             <div id="contenedor-busqueda">
-                <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+                <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI, Titular o Camino..." oninput="actualizarCoincidencias()">
                 <datalist id="coincidencias"></datalist>
                 <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
             </div>
@@ -27,6 +27,7 @@
             </div>
             <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Semáforo</button>
             <button id="btn-top-deudores" onclick="toggleTopDeudores()">🏆 Top Deudores</button>
+            <button id="btn-red-caminos" onclick="toggleRedCaminos()">🛣️ Red de Caminos</button>
             <button id="btn-referencias" onclick="toggleReferencias()">📍 Referencias</button>
             <button id="btn-satelital" onclick="toggleImagenSatelital()">🛰️ Satelital</button>
             <button id="btn-reset" style="display:none;" onclick="volverAlMapa()">🔄 Volver</button>
@@ -37,7 +38,7 @@
 
     <div id="panel-datos-parcela" class="panel-lateral" style="display:none;">
         <div class="cabecera-panel">
-            <h3>Detalle de Parcela</h3>
+            <h3>Detalle de Parcela / Elemento</h3>
             <span class="btn-cerrar" onclick="cerrarPanelDatos()">&times;</span>
         </div>
         <div id="contenido-tabla-datos"></div>
