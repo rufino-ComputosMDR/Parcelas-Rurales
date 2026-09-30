@@ -712,3 +712,104 @@ body, html {
         padding: 6px 4px !important;
     }
 }
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVA Y MÓVIL (MEDIA QUERIES)
+   Optimización para celulares sin alterar estilos de escritorio
+   ========================================================================== */
+
+/* 1. Verificar primero que la meta de escala esté presente en la vista */
+/* <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> */
+
+@media (max-width: 768px) {
+    /* Burbuja de Caminos Rurales, Gráficos y Paneles Flotantes */
+    #panel-caminos-rurales,
+    #info-camino-detalle,
+    #modal-grafico-barras {
+        width: 92vw !important;
+        max-width: 92vw !important;
+        left: 4vw !important;
+        right: 4vw !important;
+        max-height: 75vh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        border-radius: 12px !important;
+    }
+
+    /* Panel Ficha de Parcela: Se convierte en lámina desplegable inferior (Bottom Sheet) */
+    #panel-datos-parcela {
+        width: 100% !important;
+        max-width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        max-height: 60vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
+        z-index: 2000 !important;
+    }
+
+    /* Gran Tabla / Informe PDF e Informe Top Deudores */
+    #pantalla-completa-top {
+        padding: 8px !important;
+    }
+
+    #contenedor-tabla-grande-top {
+        padding: 10px !important;
+        border-radius: 8px !important;
+        overflow-x: auto !important; /* Permite desplazamiento horizontal fluido de la tabla */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mantiene la legibilidad de la tabla en pantallas angostas */
+    .gran-tabla-reporte {
+        min-width: 580px !important;
+        font-size: 11px !important;
+    }
+
+    .gran-tabla-reporte th,
+    .gran-tabla-reporte td {
+        padding: 8px 10px !important;
+    }
+
+    /* Inputs, Selects y Botones táctiles */
+    input[type="text"],
+    input[type="search"],
+    select {
+        font-size: 14px !important; /* Evita el zoom automático en iOS Safari */
+        min-height: 42px !important;
+        padding: 8px 10px !important;
+    }
+
+    button {
+        min-height: 40px !important;
+        touch-action: manipulation;
+    }
+
+    /* Ajuste de controles de zoom del mapa para evitar superposiciones */
+    .leaflet-top.leaflet-left {
+        top: 60px !important;
+    }
+
+    /* Tooltips en mapa adaptados para dedos y pantallas chicas */
+    .burbuja-camino-burbuja,
+    .etiqueta-parcela {
+        font-size: 10px !important;
+        padding: 2px 6px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Ajuste extra para móviles pequeños */
+    .gran-tabla-reporte {
+        min-width: 500px !important;
+    }
+
+    .celda-tgi-resaltada {
+        font-size: 11px !important;
+        padding: 3px 6px !important;
+    }
+}
