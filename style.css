@@ -143,7 +143,7 @@ body, html {
 }
 
 /* ==========================================================================
-   MENÚ SUPERIOR DE CONTROLES
+   MENÚ SUPERIOR DE CONTROLES Y BÚSQUEDA (FONDO BLANCO / LETRAS NEGRAS)
    ========================================================================== */
 #menu-controles {
     position: fixed !important;
@@ -181,63 +181,80 @@ body, html {
     display: flex;
     align-items: center;
     position: relative;
-    width: 280px;
+    width: 320px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    overflow: hidden;
 }
 
 #input-busqueda {
     width: 100%;
     height: 36px;
     padding: 0 40px 0 12px;
-    border: 1px solid #475569;
-    border-radius: 6px;
-    background-color: #334155;
-    color: #ffffff;
+    border: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     font-size: 13px;
+    font-weight: 600;
     outline: none;
     transition: all 0.2s ease;
 }
 
 #input-busqueda:focus {
-    border-color: #38bdf8;
-    background-color: #1e293b;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    box-shadow: inset 0 0 0 2px #38bdf8;
 }
 
 #input-busqueda::placeholder {
-    color: #94a3b8;
+    color: #64748b !important;
+    font-weight: 400;
+}
+
+#coincidencias option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
 }
 
 #btn-buscar {
     position: absolute;
-    right: 4px;
-    height: 28px;
-    width: 32px;
-    background: transparent;
+    right: 0;
+    top: 0;
+    height: 36px;
+    width: 36px;
+    background: #ffffff !important;
     border: none;
-    color: #94a3b8;
+    color: #334155 !important;
     cursor: pointer;
     font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.15s ease;
 }
 
 #btn-buscar:hover {
-    color: #38bdf8;
+    background-color: #f1f5f9 !important;
+    color: #0284c7 !important;
 }
 
 #input-coordenadas {
     height: 36px;
     width: 180px;
     padding: 0 12px;
-    border: 1px solid #475569;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
-    background-color: #334155;
-    color: #ffffff;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     font-size: 13px;
+    font-weight: 600;
     outline: none;
     display: inline-block;
     vertical-align: middle;
+}
+
+#input-coordenadas::placeholder {
+    color: #64748b !important;
+    font-weight: 400;
 }
 
 #input-coordenadas:focus {
@@ -712,13 +729,10 @@ body, html {
         padding: 6px 4px !important;
     }
 }
+
 /* ==========================================================================
    ADAPTACIÓN RESPONSIVA Y MÓVIL (MEDIA QUERIES)
-   Optimización para celulares sin alterar estilos de escritorio
    ========================================================================== */
-
-/* 1. Verificar primero que la meta de escala esté presente en la vista */
-/* <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> */
 
 @media (max-width: 768px) {
     /* Burbuja de Caminos Rurales, Gráficos y Paneles Flotantes */
@@ -760,7 +774,7 @@ body, html {
     #contenedor-tabla-grande-top {
         padding: 10px !important;
         border-radius: 8px !important;
-        overflow-x: auto !important; /* Permite desplazamiento horizontal fluido de la tabla */
+        overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -779,7 +793,7 @@ body, html {
     input[type="text"],
     input[type="search"],
     select {
-        font-size: 14px !important; /* Evita el zoom automático en iOS Safari */
+        font-size: 14px !important;
         min-height: 42px !important;
         padding: 8px 10px !important;
     }
@@ -789,12 +803,12 @@ body, html {
         touch-action: manipulation;
     }
 
-    /* Ajuste de controles de zoom del mapa para evitar superposiciones */
+    /* Ajuste de controles de zoom del mapa */
     .leaflet-top.leaflet-left {
         top: 60px !important;
     }
 
-    /* Tooltips en mapa adaptados para dedos y pantallas chicas */
+    /* Tooltips en mapa adaptados */
     .burbuja-camino-burbuja,
     .etiqueta-parcela {
         font-size: 10px !important;
@@ -803,7 +817,6 @@ body, html {
 }
 
 @media (max-width: 480px) {
-    /* Ajuste extra para móviles pequeños */
     .gran-tabla-reporte {
         min-width: 500px !important;
     }

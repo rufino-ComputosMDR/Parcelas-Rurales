@@ -31,6 +31,7 @@ let datosReferenciasGlobal = null;
 let referenciasVisibles = false;
 let graficoVisible = false;
 let topDeudoresVisible = false;
+let informeHectareasVisible = false;
 let capaCaminosRurales = null;
 
 // Variables para menú de caminos rurales y reportes
@@ -657,18 +658,18 @@ function generarInformeCaminoPDF() {
 
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const contenedorTabla = document.getElementById('contenedor-tabla-grande-top');
+    const elemTitulo = document.getElementById('titulo-reporte-pantalla');
+    if (elemTitulo) elemTitulo.innerText = `🛣️ Informe Catastral: ${nombreCamino}`;
+
+    contenedorTabla.style.width = "100%";
 
     contenedorTabla.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <h2 style="margin: 0; color: #0f172a; font-size: 20px;">🛣️ Informe Catastral: ${nombreCamino}</h2>
                 <span style="font-size: 13px; color: #64748b;">Longitud total trazada: <strong>${longCamino}</strong> | Lotes Linderos: <strong>${listaParcelas.length}</strong></span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <span style="font-weight: 700; color: #0284c7; background-color: #e0f2fe; padding: 6px 12px; border-radius: 6px; font-size: 12px;">${badgeFecha}</span>
-                <button onclick="window.print()" style="background-color: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 6px;">
-                    🖨️ Imprimir / Guardar PDF
-                </button>
             </div>
         </div>
         <table class="gran-tabla-reporte">
@@ -887,39 +888,55 @@ function cerrarPanelDatos() {
 }
 
 // ==========================================================================
-// 4. AUTOCOMPLETADO ROBUSTO Y BÚSQUEDA CATASTRAL
+// 4. AUTOCOMPLETADO ROBUSTO Y BÚSQUEDA CATASTRAL / COORDENADAS UNIFICADA
 // ==========================================================================
 function actualizarCoincidencias() {
-    const valor = document.getElementById('input-busqueda').value.trim().toLowerCase();
+    const input = document.getElementById('input-busqueda');
+    const valor = input.value.trim().toLowerCase();
     const datalist = document.getElementById('coincidencias');
+    
+    // Limpiar opciones previas
     datalist.innerHTML = ""; 
     
-    if (valor.length < 2 || !datosRuralesGlobal) return;
-    let contador = 0;
+    // Si el texto es muy corto, es coordenada o no hay datos, no genera lista
+    if (valor.length < 2 || !datosRuralesGlobal || (typeof esTextoCoordenadas === 'function' && esTextoCoordenadas(valor))) {
+        return;
+    }
     
+    let contador = 0;
+    let opcionesAgregadas = new Set(); // Evita registros duplicados
+
     for (let f of datosRuralesGlobal.features) {
         const p = f.properties;
+        if (!p) continue;
+
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
         const tgi = p["TGIRural"] ? p["TGIRural"].toString().toLowerCase() : "";
         const titular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().toLowerCase() : "";
         
-        if (partida.includes(valor) || tgi.includes(valor) || titular.includes(valor)) {
-            const option = document.createElement('option');
-            
-            if (titular.includes(valor)) {
-                option.value = p["Tit. Nombre"];
-                option.label = `[TGI: ${p["TGIRural"]} | Partida: ${p["PARTIDA"]}]`;
-            } else if (tgi.includes(valor)) {
-                option.value = p["TGIRural"].toString();
-                option.label = `[Titular: ${p["Tit. Nombre"] || 'S/D'} | Partida: ${p["PARTIDA"]}]`;
-            } else {
-                option.value = p["PARTIDA"].toString();
-                option.label = `[TGI: ${p["TGIRural"]} | Titular: ${p["Tit. Nombre"] || 'S/D'}]`;
+        // Verifica si el texto ingresado (apellido o nombre) está presente en el Titular, Partida o TGI
+        if (titular.includes(valor) || partida.includes(valor) || tgi.includes(valor)) {
+            let nombreTitular = p["Tit. Nombre"] ? p["Tit. Nombre"].toString().trim() : "";
+            let tgiVal = p["TGIRural"] ? p["TGIRural"].toString().trim() : "S/D";
+            let partidaVal = p["PARTIDA"] ? p["PARTIDA"].toString().trim() : "S/D";
+
+            // Se usa el Titular como valor primario si existe, de lo contrario TGI o Partida
+            let valorInput = nombreTitular || tgiVal || partidaVal;
+            let claveUnica = valorInput.toUpperCase();
+
+            if (!opcionesAgregadas.has(claveUnica)) {
+                opcionesAgregadas.add(claveUnica);
+                
+                const option = document.createElement('option');
+                // Asignar el valor principal
+                option.value = valorInput;
+                // Formato de etiqueta compatible con Firefox y Chrome
+                option.textContent = `${valorInput} — [TGI: ${tgiVal} | Partida: ${partidaVal}]`;
+                
+                datalist.appendChild(option);
+                contador++; 
+                if (contador >= 15) break; // Límite de 15 sugerencias
             }
-            
-            datalist.appendChild(option);
-            contador++; 
-            if (contador >= 10) break; 
         }
     }
 }
@@ -939,11 +956,45 @@ function configurarLanzadorAutomaticoDatalist() {
     });
 }
 
+function parsearDMSToDecimal(strInput) {
+    if (!isNaN(parseFloat(strInput)) && !strInput.includes('°') && !strInput.includes("'")) return parseFloat(strInput);
+    let partes = strInput.split(/[^\d\w\.]+/);
+    let grados = parseFloat(partes[0]) || 0;
+    let minutes = parseFloat(partes[1]) || 0;
+    let segundos = parseFloat(partes[2]) || 0;
+    let orientacion = strInput.toUpperCase();
+    let res = grados + (minutes / 60) + (segundos / 3600);
+    if (orientacion.includes('S') || orientacion.includes('W') || orientacion.includes('O')) res = res * -1;
+    return res;
+}
+
+function esTextoCoordenadas(texto) {
+    return texto.includes(',') || texto.includes('°') || texto.includes("'");
+}
+
 function ejecutarBusqueda() {
     let valorBuscado = document.getElementById('input-busqueda').value.trim();
     if (!valorBuscado) { alert("Ingrese un término para buscar."); return; }
-    let vLow = valorBuscado.toLowerCase();
 
+    // DETECCION DE BUSQUEDA POR COORDENADAS
+    if (esTextoCoordenadas(valorBuscado)) {
+        let partes = valorBuscado.split(',');
+        if (partes.length === 2) {
+            let lat = parsearDMSToDecimal(partes[0].trim());
+            let lng = parsearDMSToDecimal(partes[1].trim());
+            if (!isNaN(lat) && !isNaN(lng)) {
+                if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
+                marcadorCoordenada = L.marker([lat, lng]).addTo(map).bindPopup(`Lat: ${lat}<br>Lng: ${lng}`).openPopup();
+                map.setView([lat, lng], 14);
+                document.getElementById('btn-reset').style.display = 'block';
+                cerrarMenuMovilSiCorresponde();
+                return;
+            }
+        }
+    }
+
+    // BUSQUEDA CATASTRAL HABITUAL (PARTIDA, TGI, TITULAR)
+    let vLow = valorBuscado.toLowerCase();
     const parcelasEncontradas = datosRuralesGlobal.features.filter(f => {
         const p = f.properties;
         const partida = p["PARTIDA"] ? p["PARTIDA"].toString().toLowerCase() : "";
@@ -967,7 +1018,7 @@ function ejecutarBusqueda() {
 }
 
 // ==========================================================================
-// 5. CONTROLADORES DE REPORTES, GRÁFICOS Y TOP DEUDORES
+// 5. CONTROLADORES DE REPORTES, GRÁFICOS, TOP DEUDORES Y HECTÁREAS
 // ==========================================================================
 function toggleGraficoSemaforo() {
     const modal = document.getElementById('modal-grafico-barras');
@@ -1057,20 +1108,35 @@ function generarGraficoBarrasDinamicas(idHojaFiltro = null) {
 function toggleTopDeudores() {
     const vistaCompleta = document.getElementById('pantalla-completa-top');
     const btn = document.getElementById('btn-top-deudores');
+    const btnHectareas = document.getElementById('btn-informe-hectareas');
     
     if (topDeudoresVisible) {
         vistaCompleta.style.display = 'none';
         btn.classList.remove('activo');
+        topDeudoresVisible = false;
     } else {
+        if (informeHectareasVisible) {
+            informeHectareasVisible = false;
+            if (btnHectareas) btnHectareas.classList.remove('activo');
+        }
         generarGranTablaTop50Unificada();
         vistaCompleta.style.display = 'block';
         btn.classList.add('activo');
+        topDeudoresVisible = true;
     }
-    topDeudoresVisible = !topDeudoresVisible;
 }
 
 function generarGranTablaTop50Unificada() {
     if (!datosRuralesGlobal) return;
+
+    const elemTitulo = document.getElementById('titulo-reporte-pantalla');
+    if (elemTitulo) elemTitulo.innerText = "Grandes Deudores: Cuentas con Mayor Deuda Fiscal Acumulada";
+
+    const contenedorTabla = document.getElementById('contenedor-tabla-grande-top');
+    if (contenedorTabla) {
+        contenedorTabla.style.width = "100%";
+        contenedorTabla.style.maxWidth = "100%";
+    }
     
     let mapTGI = {};
     
@@ -1140,8 +1206,157 @@ function generarGranTablaTop50Unificada() {
     `;
 }
 
+// ==========================================================================
+// 5.1 INFORME DE CANTIDAD DE HECTÁREAS POR HOJA Y TOTAL GENERAL
+// ==========================================================================
+function toggleInformeHectareas() {
+    const vistaCompleta = document.getElementById('pantalla-completa-top');
+    const btnHectareas = document.getElementById('btn-informe-hectareas');
+    const btnTop = document.getElementById('btn-top-deudores');
+
+    if (informeHectareasVisible) {
+        vistaCompleta.style.display = 'none';
+        if (btnHectareas) btnHectareas.classList.remove('activo');
+        informeHectareasVisible = false;
+    } else {
+        if (topDeudoresVisible) {
+            topDeudoresVisible = false;
+            if (btnTop) btnTop.classList.remove('activo');
+        }
+        generarInformeHectareasPorHoja();
+        vistaCompleta.style.display = 'block';
+        if (btnHectareas) btnHectareas.classList.add('activo');
+        informeHectareasVisible = true;
+    }
+}
+
+function generarInformeHectareasPorHoja() {
+    if (!datosRuralesGlobal || !datosRuralesGlobal.features) {
+        alert("Los datos catastrales aún no han sido cargados.");
+        return;
+    }
+
+    const elemTitulo = document.getElementById('titulo-reporte-pantalla');
+    if (elemTitulo) {
+        elemTitulo.innerText = "🌾 Total Hectáreas Zona Rural Rufino";
+    }
+
+    let acumuladoHojas = {};
+    let totalHectareasGeneral = 0;
+
+    datosRuralesGlobal.features.forEach(f => {
+        let p = f.properties;
+        if (!p) return;
+
+        let numHoja = p.Hoja !== undefined && p.Hoja !== null ? p.Hoja.toString().trim() : "";
+        if (!numHoja || numHoja.toUpperCase() === "S/D") return;
+
+        let keyHas = Object.keys(p).find(k => k.toLowerCase().includes("superficie has.") || k.toLowerCase().includes("superficie has"));
+        let superficie = keyHas ? limpiarMonto(p[keyHas]) : (p["Superficie Has."] ? limpiarMonto(p["Superficie Has."]) : 0);
+
+        if (!acumuladoHojas[numHoja]) {
+            acumuladoHojas[numHoja] = {
+                hoja: numHoja,
+                totalHas: 0
+            };
+        }
+
+        acumuladoHojas[numHoja].totalHas += superficie;
+        totalHectareasGeneral += superficie;
+    });
+
+    let listaHojas = Object.values(acumuladoHojas);
+    listaHojas.sort((a, b) => {
+        let nA = parseInt(a.hoja, 10);
+        let nB = parseInt(b.hoja, 10);
+        if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+        return a.hoja.localeCompare(b.hoja);
+    });
+
+    let filasHtml = "";
+    listaHojas.forEach(item => {
+        let hectareasFormateadas = item.totalHas.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        filasHtml += `
+            <tr onclick="seleccionarHojaDesdeInforme('${item.hoja}')">
+                <td style="padding: 10px 16px; font-weight: 700; color: #0ea5e9; font-size: 13px;">Hoja ${item.hoja}</td>
+                <td style="text-align: right; font-weight: 800; color: #0f172a; font-size: 13px; padding: 10px 16px; font-family: 'Courier New', Courier, monospace;">${hectareasFormateadas} Has.</td>
+            </tr>
+        `;
+    });
+
+    let totalHasFormateadas = totalHectareasGeneral.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const contenedorTabla = document.getElementById('contenedor-tabla-grande-top');
+    if (contenedorTabla) {
+        contenedorTabla.style.width = "fit-content";
+        contenedorTabla.style.maxWidth = "100%";
+        contenedorTabla.style.margin = "0 auto";
+    }
+
+    contenedorTabla.innerHTML = `
+        <div style="margin-bottom: 12px; font-size: 12px; color: #64748b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
+            <span>* Sumatoria del campo <strong>"Superficie Has."</strong> por hoja. Haz clic para auditar la zona en el mapa.</span>
+            <span style="font-weight: 700; color: #0284c7; background-color: #e0f2fe; padding: 3px 8px; border-radius: 4px; font-size: 11px;">📊 Total Hojas: ${listaHojas.length}</span>
+        </div>
+        <table class="gran-tabla-reporte" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px 16px; text-align: left;">Plano / Hoja Catastral</th>
+                    <th style="padding: 10px 16px; text-align: right; min-width: 200px;">Superficie Acumulada (Has.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filasHtml || '<tr><td colspan="2" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 12px;">No se encontraron registros de superficie catastral.</td></tr>'}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f8fafc; font-weight: bold;">
+                    <td style="padding: 12px 16px; text-align: left; font-size: 12px; color: #1e293b;">TOTAL GENERAL DISTRITO RURAL:</td>
+                    <td style="padding: 12px 16px; text-align: right; color: #0284c7; font-size: 14px; font-family: 'Courier New', Courier, monospace;">${totalHasFormateadas} Has.</td>
+                </tr>
+            </tfoot>
+        </table>
+    `;
+}
+
+function seleccionarHojaDesdeInforme(idHoja) {
+    cerrarReportePantallaCompleta();
+    const idHojaNum = parseInt(idHoja, 10);
+    
+    if (capaZonas) {
+        let zonaEncontrada = null;
+        capaZonas.eachLayer(layer => {
+            if (layer.feature && parseInt(layer.feature.properties.id, 10) === idHojaNum) {
+                zonaEncontrada = layer;
+            }
+        });
+
+        if (zonaEncontrada) {
+            comenzarAuditoriaZona(idHojaNum, zonaEncontrada.getBounds());
+            return;
+        }
+    }
+    
+    const parcelasHoja = datosRuralesGlobal.features.filter(f => f.properties && parseInt(f.properties.Hoja, 10) === idHojaNum);
+    if (parcelasHoja.length > 0) {
+        const grupoTemp = L.featureGroup(parcelasHoja.map(f => L.geoJSON(f)));
+        comenzarAuditoriaZona(idHojaNum, grupoTemp.getBounds());
+    }
+}
+
+function cerrarReportePantallaCompleta() {
+    document.getElementById('pantalla-completa-top').style.display = 'none';
+    
+    const btnTop = document.getElementById('btn-top-deudores');
+    if (btnTop) btnTop.classList.remove('activo');
+    topDeudoresVisible = false;
+
+    const btnHectareas = document.getElementById('btn-informe-hectareas');
+    if (btnHectareas) btnHectareas.classList.remove('activo');
+    informeHectareasVisible = false;
+}
+
 function hacerClicFilaTop(tgiBuscado) {
-    toggleTopDeudores();
+    cerrarReportePantallaCompleta();
     document.getElementById('input-busqueda').value = tgiBuscado;
     ejecutarBusqueda();
 }
@@ -1158,7 +1373,6 @@ function volverAlMapa() {
     if (!map.hasLayer(capaZonas)) capaZonas.addTo(map);
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('input-busqueda').value = ""; 
-    document.getElementById('input-coordenadas').value = "";
     
     const modal = document.getElementById('modal-grafico-barras');
     const btn = document.getElementById('btn-grafico');
@@ -1169,32 +1383,6 @@ function volverAlMapa() {
     }
 
     map.fitBounds(capaZonas.getBounds());
-}
-
-function parsearDMSToDecimal(strInput) {
-    if (!isNaN(parseFloat(strInput)) && !strInput.includes('°') && !strInput.includes("'")) return parseFloat(strInput);
-    let partes = strInput.split(/[^\d\w\.]+/);
-    let grados = parseFloat(partes[0]) || 0;
-    let minutes = parseFloat(partes[1]) || 0;
-    let segundos = parseFloat(partes[2]) || 0;
-    let orientacion = strInput.toUpperCase();
-    let res = grados + (minutes / 60) + (segundos / 3600);
-    if (orientacion.includes('S') || orientacion.includes('W') || orientacion.includes('O')) res = res * -1;
-    return res;
-}
-
-function buscarPorCoordenadas() {
-    const rawValue = document.getElementById('input-coordenadas').value.trim();
-    if (!rawValue) return;
-    let partes = rawValue.split(','); if (partes.length !== 2) return;
-    let lat = parsearDMSToDecimal(partes[0].trim());
-    let lng = parsearDMSToDecimal(partes[1].trim());
-    if (marcadorCoordenada) map.removeLayer(marcadorCoordenada);
-    marcadorCoordenada = L.marker([lat, lng]).addTo(map).bindPopup(`Lat: ${lat}<br>Lng: ${lng}`).openPopup();
-    map.setView([lat, lng], 14);
-    document.getElementById('btn-reset').style.display = 'block';
-    
-    cerrarMenuMovilSiCorresponde();
 }
 
 function toggleMenuMovil() {

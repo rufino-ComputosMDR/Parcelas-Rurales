@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />    <title>Auditoría Catastral Rural</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Auditoría Catastral Rural</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css?v=1.7" />
 </head>
@@ -11,21 +12,18 @@
     <div id="menu-controles">
         <div class="cabecera-menu-movil">
             <div id="contenedor-busqueda">
-                <input type="text" id="input-busqueda" list="coincidencias" placeholder="Partida, TGI o Titular..." oninput="actualizarCoincidencias()">
+                <input type="text" id="input-busqueda" list="coincidencias" placeholder="Buscar Partida, TGI, Titular o Lat,Lng..." oninput="actualizarCoincidencias()">
                 <datalist id="coincidencias"></datalist>
                 <button id="btn-buscar" onclick="ejecutarBusqueda()">🔍</button>
             </div>
             
             <button id="btn-hamburguesa" onclick="toggleMenuMovil()">☰</button>
         </div>
-
+    
         <div id="controles-colapsables" class="controles-links">
-            <div class="grupo-coordenadas">
-                <input type="text" id="input-coordenadas" placeholder="Lat, Lng o DMS...">
-                <button onclick="buscarPorCoordenadas()">📍 Ir</button>
-            </div>
             <button id="btn-grafico" onclick="toggleGraficoSemaforo()">📊 Semáforo</button>
             <button id="btn-top-deudores" onclick="toggleTopDeudores()">🏆 Top Deudores</button>
+            <button id="btn-informe-hectareas" onclick="toggleInformeHectareas()">🌾 Informe Hectáreas</button>
             <button id="btn-caminos" onclick="togglePanelCaminos()">🛣️ Caminos</button>
             <button id="btn-referencias" onclick="toggleReferencias()">📍 Referencias</button>
             <button id="btn-satelital" onclick="toggleImagenSatelital()">🛰️ Satelital</button>
@@ -38,7 +36,7 @@
     <!-- PANEL DESPLEGABLE DE CAMINOS RURALES -->
     <div id="panel-caminos-rurales" class="panel-lateral" style="display:none; top: 75px; right: 15px; left: auto; width: 320px;">
         <div class="cabecera-panel">
-            <h3>🛣️️ Caminos Rurales</h3>
+            <h3>🛣 Caminos Rurales</h3>
             <span class="btn-cerrar" onclick="togglePanelCaminos()">&times;</span>
         </div>
         <div style="padding: 14px;">
@@ -75,10 +73,10 @@
 
     <div id="pantalla-completa-top" class="vista-completa" style="display:none;">
         <div class="cabecera-reporte">
-            <h2>Grandes Deudores: Cuentas con Mayor Deuda Fiscal Acumulada</h2>
+            <h2 id="titulo-reporte-pantalla">Grandes Deudores: Cuentas con Mayor Deuda Fiscal Acumulada</h2>
             <div style="display: flex; gap: 10px;">
                 <button class="btn-imprimir-reporte" onclick="window.print()">🖨️ Imprimir / PDF</button>
-                <button class="btn-cerrar-pantalla" onclick="toggleTopDeudores()">❌ Cerrar Reporte</button>
+                <button class="btn-cerrar-pantalla" onclick="cerrarReportePantallaCompleta()">❌ Cerrar Reporte</button>
             </div>
         </div>
         <div id="contenedor-tabla-grande-top"></div>
